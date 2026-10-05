@@ -11,7 +11,8 @@ Cada fonte primária tem um semáforo de licença e um status de implementação
 | IBGE SIDRA / apisidra | população (6579/9324), IPCA 12m (1737/2265), desocupação (6381, 4562 UF), informalidade (4708), PIB UF/município (5938 var 37/496) | Verde (uso livre com atribuição) | `src/lib/collectors.ts` | ✅ ativo |
 | BCB SGS (`api.bcb.gov.br`) | Selic meta diária (1178), câmbio PTAX compra (1), IPCA mensal (433) | Verde | `src/lib/collectors.ts` | ✅ ativo |
 | ONS — Dados Abertos | Carga mensal de energia por subsistema (`CARGA_MENSAL.csv`, CC-BY) | Verde (CC-BY) | `src/lib/collectors.ts` | ✅ ativo |
-| CVM — Dados Abertos | DFP zip anual → DRE consolidada (receita, lucro) de PETR/ITUB/BBAS3 | Verde (open data; redistribuímos apenas números-síntese com citação) | `src/lib/collectors.ts` | ✅ ativo |
+| World Bank Open Data (API v2) | PIB crescimento real, PIB per capita, desemprego ILO, inflação IPC, população, dívida gov. central — BR/US/JP/AR/MX/CL/DE/CN/IN/KR/PT (2000–2025) | Verde (CC-BY 4.0, atribuição) | `src/lib/worldbank.ts` + `src/lib/parsers-worldbank.ts` | ✅ ativo (comparadores internacionais, `/paises`, `/scorecards`) |
+| CVM — Dados Abertos | DFP zip anual → DRE consolidada (receita, lucro) de 15 listadas (PETR4, VALE3, ITUB4, BBDC4, BBAS3, ABEV3, WEGE3, JBSS3, SUZB3, BRFS3, NTCO3, MGLU3, GGBR4, RENT3, B3SA3) | Verde (open data; redistribuímos apenas números-síntese com citação) | `src/lib/collectors.ts` | ✅ ativo |
 | EPE — Balanço Energético Nacional (BEN) | matriz energética, consumo | Amarelo (reproduzir apenas números-síntese com citação explícita; não re-hospedar o PDF) | — | ⏳ pendente (parser de PDF planejado para rodar fora do Workers, via CI) |
 | ANP — bilhete/semanário de combustíveis | preços de combustíveis | Verde | — | ⏳ pendente |
 | Tesouro — Siconfi (`apidatalake.tesouro.gov.br`) | FINBRA/orçamento municipal | Verde | — | ❌ pendente: API respondeu **404** nos testes (out/2026); monitorar retorno da API |
@@ -41,7 +42,18 @@ Cada fonte primária tem um semáforo de licença e um status de implementação
 - Zip anual: `https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/DFP/Dados/dfp_cia_aberta_<ano>.zip`
 - O zip do ano corrente contém apenas envios parciais; o coletor usa `dfp_cia_aberta_2025.zip` (exercícios 2024/2025 completos).
 - CSV DRE consolidado com `;` e codificação latin-1; filtro por CNPJ; `ORDEM_EXERC` `ÚLTIMO` > `PENÚLTIMO`; escala `MIL` → valores multiplicados por 1000.
-- O download + descompactação (fflate) acontece no runtime com cache KV de 24h — nunca a cada visita.
+- Coleta em BUILD (`scripts/generate-empresas.ts` → `src/data/empresas.json` versionado): o zip excedia o limite de CPU do Workers em produção (error 1102).
+
+### World Bank Open Data (API v2)
+- Endpoint: `https://api.worldbank.org/v2/country/BR;US;JP;AR;MX;CL;DE;CN;IN;KR;PT/indicator/<codigo>?format=json&per_page=500&date=2000:2025`
+- Uma chamada por indicador cobre os 11 países; resposta `[meta, linhas]` com `countryiso3code`, `date` (ano) e `value` (`null` = sem dado — descartado, nunca zero).
+- Indicadores: `NY.GDP.MKTP.KD.ZG` (crescimento real), `NY.GDP.PCAP.CD` (PIB per capita), `SL.UEM.TOTL.ZS` (desemprego ILO), `FP.CPI.TOTL.ZG` (inflação IPC), `SP.POP.TOTL` (população), `GC.DOD.TOTL.GD.ZS` (dívida gov. central — cobertura esparse: nem todo país publica).
+- Fixtures reais em `tests/fixtures/worldbank-<codigo>.json`. Licença CC-BY 4.0.
+
+### CVM
+- Catálogo com 15 listadas; CNPJs conferidos contra `CIA_ABERTA/CAD/DADOS/cad_cia_aberta.csv` (situação ATIVO), out/2026.
+- Lucro consolidado do período: conta **3.11** no DRE corporativo e **3.09** no DRE de bancos/intermediação (Itaú, Bradesco, BB usam layout próprio — conf. DFP 2025).
+- Ranking de UFs (`getRankingUf`): consultas únicas `n3/all` (5938/37, 5938/496, 4562/4099, 4708/12466, 6579/9324) — 27/27 UFs com valor, validado out/2026. PIB per capita derivado (PIB do ano ÷ população do mesmo ano; anos diferentes → indisponível).
 
 ## Decisões de armazenamento e coleta
 - **KV como store das séries normalizadas** (cache-aside com TTL por indicador) em vez de D1/R2: coleta por request, volume pequeno, stack já existente do F1. Migração para D1 (histórico consultável, agregações) e R2 (snapshots brutos parquet) fica documentada como evolução — o modelo canônico (`Observacao`) já é compatível.

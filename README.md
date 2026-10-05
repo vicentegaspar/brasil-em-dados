@@ -14,7 +14,7 @@ referência e data de coleta.
 - [Astro](https://astro.build) (SSR) + adaptador Cloudflare
 - Cloudflare Workers/Pages + KV (cache de leitura das fontes públicas)
 - Bindings do Workers via `cloudflare:workers` (Astro v7 removeu `Astro.locals.runtime`)
-- Coletores: BCB SGS, IBGE SIDRA/apisidra, ONS (dados abertos), CVM (DFP)
+- Coletores: BCB SGS, IBGE SIDRA/apisidra, ONS (dados abertos), CVM (DFP), World Bank Open Data (CC-BY 4.0)
 
 ## Como funciona
 
@@ -45,9 +45,14 @@ O KV `CACHE` é resolvido em dev via `platformProxy` do `wrangler.jsonc`
 ## Páginas e API
 
 - `GET /` — painel Brasil (Selic, câmbio, IPCA, desocupação, informalidade, PIB, carga de energia)
+- `GET /graficos` — gráficos interativos com múltiplas curvas e filtro de período (Chart.js self-hosted)
+- `GET /paises` — comparação internacional: 11 países × 6 indicadores de mercado (World Bank)
+- `GET /estados` — ranking ordenável das 27 UFs (PIB, PIB per capita derivado, desocupação, informalidade, população)
 - `GET /estado/<sigla>` — drill-down por UF (PIB, participação, desocupação, informalidade)
-- `GET /empresas` — balanços de PETR, ITUB, BBAS3 (DRE consolidada da CVM)
+- `GET /scorecards` — índices de investimento com definição/fonte e índice composto com fórmula visível
+- `GET /empresas` — balanços de 15 listadas (DRE consolidada da CVM)
 - `GET /api/v1/indicadores` — API v1 (JSON, séries completas; `?formato=csv` exporta CSV) — docs em `docs/api.md`
+- `GET /api/v1/serie?id=...&inicio=&fim=` — série individual por indicador/localidade (World Bank, BCB, SIDRA, ONS) — docs em `docs/api.md`
 - `GET /api/indicadores.json` — endpoint legado do F1 (população + IPCA 12m)
 
 ## Roadmap
@@ -55,7 +60,6 @@ O KV `CACHE` é resolvido em dev via `platformProxy` do `wrangler.jsonc`
 - Cron de coleta (Workers Cron Triggers / GitHub Actions)
 - PIB municipal no drill-down (já coletado via SIDRA 5938 N6)
 - Emprego formal (CAGED/RAIS) e finanças públicas (Siconfi) — fontes pendentes, ver `docs/fontes.md`
-- Scorecards comparativos ("vale a pena viver/investir aqui?")
 - Export Parquet/R2 de datasets completos
 
 ## Licença
