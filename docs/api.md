@@ -48,6 +48,45 @@ Observações: formato canônico do período — `YYYY` anual, `YYYY-MM` mensal/
 
 Exporta todas as observações como CSV (`indicador,localidade,periodo,valor`).
 
+## GET /api/v1/serie
+
+Série individual por indicador/localidade, usada pela página `/graficos`.
+
+```
+GET /api/v1/serie?id=wb-FP.CPI.TOTL.ZG-BRA&inicio=2020&fim=2025
+```
+
+`id` aceitos:
+
+| padrão | fonte | periodicidade |
+|---|---|---|
+| `wb-<codIndicador>-<ISO3>` (ex.: `wb-NY.GDP.MKTP.KD.ZG-BRA`) | World Bank Open Data (CC-BY 4.0) | anual |
+| `bcb-selic` · `bcb-cambio` · `bcb-ipca-mensal` | BCB SGS 1178/1/433 | diária/mensal |
+| `sidra-desocupacao` · `sidra-informalidade` · `sidra-pib` · `sidra-populacao` · `sidra-ipca-12m` | IBGE apisidra | var. |
+| `ons-carga` | ONS (CC-BY) | mensal |
+
+Parâmetros opcionais `inicio`/`fim` filtram por período no formato canônico
+(`2015` para anual, `2015-03` para mensal — comparação lexicográfica).
+
+Resposta:
+
+```json
+{
+  "id": "wb-FP.CPI.TOTL.ZG-BRA",
+  "nome": "Inflação (% anual, IPC) — Brasil",
+  "unidade": "%",
+  "periodicidade": "anual",
+  "fonte": "World Bank Open Data (CC-BY 4.0)",
+  "fonte_url": "https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG",
+  "licenca": "CC-BY 4.0",
+  "coletado_em": "2026-10-05T17:00:00.000Z",
+  "indisponivel": null,
+  "observacoes": [{ "periodo": "2025", "valor": 5.01675279604836 }]
+}
+```
+
+`id` desconhecido ou fonte fora do ar → `404` com `erro` e a lista de `ids_validos`.
+
 ## GET /api/indicadores.json (legado, mantido)
 
 Compatibilidade do F1: população estimada + IPCA 12m (IBGE).

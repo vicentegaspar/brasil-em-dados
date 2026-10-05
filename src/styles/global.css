@@ -1,7 +1,7 @@
-// Design tokens — Brasil em Dados
-// Fundo profundo, superfícies com borda, acento verde apenas para dados
-// positivos/CTA; azul e amarelo para séries neutras. Sem gradientes
-// decorativos, sem glassmorphism, contraste AA em todo texto.
+/* Design tokens — Brasil em Dados
+   Fundo profundo, superfícies com borda, acento verde apenas para dados
+   positivos/CTA; azul e amarelo para séries neutras. Sem gradientes
+   decorativos, sem glassmorphism, contraste AA em todo texto. */
 
 :root {
   /* superfícies */
