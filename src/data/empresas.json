@@ -1,33 +1,159 @@
 {
-  "gerado_em": "2026-10-05T17:32:35.925Z",
+  "gerado_em": "2026-10-05T19:55:57.004Z",
   "fonte": "CVM open data — DFP (dados.cvm.gov.br)",
   "exercicioFonte": "dfp_cia_aberta_2025.zip",
   "empresas": [
+    {
+      "ticker": "ABEV3",
+      "cnpj": "07.526.557/0001-00",
+      "nome": "AMBEV S.A.",
+      "ano": 2025,
+      "receita": 88242467000,
+      "lucroLiquido": 15988433000,
+      "escala": "MIL"
+    },
+    {
+      "ticker": "B3SA3",
+      "cnpj": "09.346.601/0001-25",
+      "nome": "B3 S.A. - BRASIL, BOLSA, BALCÃO",
+      "ano": 2025,
+      "receita": 11121545000,
+      "lucroLiquido": 4586872000,
+      "escala": "MIL"
+    },
     {
       "ticker": "BBAS3",
       "cnpj": "00.000.000/0001-91",
       "nome": "BCO BRASIL S.A.",
       "ano": 2025,
       "receita": 319462104000,
-      "lucroLiquido": null,
+      "lucroLiquido": 16781938000,
       "escala": "MIL"
     },
     {
-      "ticker": "ITUB",
+      "ticker": "BBDC4",
+      "cnpj": "60.746.948/0001-12",
+      "nome": "BCO BRADESCO S.A.",
+      "ano": 2025,
+      "receita": 270183106000,
+      "lucroLiquido": 23924636000,
+      "escala": "MIL"
+    },
+    {
+      "ticker": "BRFS3",
+      "cnpj": "01.838.723/0001-27",
+      "nome": "BRF S.A.",
+      "ano": 2025,
+      "receita": 65048731000,
+      "lucroLiquido": 3288189000,
+      "escala": "MIL"
+    },
+    {
+      "ticker": "GGBR4",
+      "cnpj": "33.611.500/0001-19",
+      "nome": "GERDAU S.A.",
+      "ano": 2025,
+      "receita": 69858532000,
+      "lucroLiquido": 1418438000,
+      "escala": "MIL"
+    },
+    {
+      "ticker": "ITUB4",
       "cnpj": "60.872.504/0001-23",
       "nome": "ITAU UNIBANCO HOLDING S.A.",
       "ano": 2025,
       "receita": 387118000000,
-      "lucroLiquido": null,
+      "lucroLiquido": 45849000000,
       "escala": "MIL"
     },
     {
-      "ticker": "PETR",
+      "ticker": "JBSS3",
+      "cnpj": "02.916.265/0001-60",
+      "nome": "JBS S.A.",
+      "ano": 2025,
+      "receita": 480583047000,
+      "lucroLiquido": 12535912000,
+      "escala": "MIL"
+    },
+    {
+      "ticker": "MGLU3",
+      "cnpj": "47.960.950/0001-21",
+      "nome": "MAGAZINE LUIZA S.A.",
+      "ano": 2025,
+      "receita": 38703387000,
+      "lucroLiquido": 204603000,
+      "escala": "MIL"
+    },
+    {
+      "ticker": "NTCO3",
+      "cnpj": "71.673.990/0001-77",
+      "nome": "NATURA COSMÉTICOS S.A.",
+      "ano": 2025,
+      "receita": 21823488000,
+      "lucroLiquido": 528980000,
+      "escala": "MIL"
+    },
+    {
+      "ticker": "PETR4",
       "cnpj": "33.000.167/0001-01",
       "nome": "PETROLEO BRASILEIRO S.A. PETROBRAS",
       "ano": 2025,
       "receita": 497549000000,
-      "lucroLiquido": null,
+      "lucroLiquido": 110605000000,
+      "escala": "MIL"
+    },
+    {
+      "ticker": "RENT3",
+      "cnpj": "16.670.085/0001-55",
+      "nome": "LOCALIZA RENT A CAR S.A.",
+      "ano": 2025,
+      "receita": 41781588000,
+      "lucroLiquido": 1870470000,
+      "escala": "MIL"
+    },
+    {
+      "ticker": "SUZB3",
+      "cnpj": "60.651.809/0001-05",
+      "nome": "SUZANO HOLDING S.A.",
+      "ano": 2025,
+      "receita": 50116256000,
+      "lucroLiquido": 13443772000,
+      "escala": "MIL"
+    },
+    {
+      "ticker": "VALE3",
+      "cnpj": "33.592.510/0001-54",
+      "nome": "VALE S.A.",
+      "ano": 2025,
+      "receita": 213595000000,
+      "lucroLiquido": 11811000000,
+      "escala": "MIL"
+    },
+    {
+      "ticker": "WEGE3",
+      "cnpj": "84.429.695/0001-11",
+      "nome": "WEG S.A.",
+      "ano": 2025,
+      "receita": 40804110000,
+      "lucroLiquido": 6775958000,
+      "escala": "MIL"
+    },
+    {
+      "ticker": "ABEV3",
+      "cnpj": "07.526.557/0001-00",
+      "nome": "AMBEV S.A.",
+      "ano": 2024,
+      "receita": 89452669000,
+      "lucroLiquido": 14846952000,
+      "escala": "MIL"
+    },
+    {
+      "ticker": "B3SA3",
+      "cnpj": "09.346.601/0001-25",
+      "nome": "B3 S.A. - BRASIL, BOLSA, BALCÃO",
+      "ano": 2024,
+      "receita": 10572738000,
+      "lucroLiquido": 4576691000,
       "escala": "MIL"
     },
     {
@@ -36,25 +162,115 @@
       "nome": "BCO BRASIL S.A.",
       "ano": 2024,
       "receita": 273505274000,
-      "lucroLiquido": null,
+      "lucroLiquido": 29171564000,
       "escala": "MIL"
     },
     {
-      "ticker": "ITUB",
+      "ticker": "BBDC4",
+      "cnpj": "60.746.948/0001-12",
+      "nome": "BCO BRADESCO S.A.",
+      "ano": 2024,
+      "receita": 213219736000,
+      "lucroLiquido": 17542153000,
+      "escala": "MIL"
+    },
+    {
+      "ticker": "BRFS3",
+      "cnpj": "01.838.723/0001-27",
+      "nome": "BRF S.A.",
+      "ano": 2024,
+      "receita": 61379038000,
+      "lucroLiquido": 3691904000,
+      "escala": "MIL"
+    },
+    {
+      "ticker": "GGBR4",
+      "cnpj": "33.611.500/0001-19",
+      "nome": "GERDAU S.A.",
+      "ano": 2024,
+      "receita": 67026656000,
+      "lucroLiquido": 4599062000,
+      "escala": "MIL"
+    },
+    {
+      "ticker": "ITUB4",
       "cnpj": "60.872.504/0001-23",
       "nome": "ITAU UNIBANCO HOLDING S.A.",
       "ano": 2024,
       "receita": 335328000000,
-      "lucroLiquido": null,
+      "lucroLiquido": 42128000000,
       "escala": "MIL"
     },
     {
-      "ticker": "PETR",
+      "ticker": "JBSS3",
+      "cnpj": "02.916.265/0001-60",
+      "nome": "JBS S.A.",
+      "ano": 2024,
+      "receita": 416952002000,
+      "lucroLiquido": 10703994000,
+      "escala": "MIL"
+    },
+    {
+      "ticker": "MGLU3",
+      "cnpj": "47.960.950/0001-21",
+      "nome": "MAGAZINE LUIZA S.A.",
+      "ano": 2024,
+      "receita": 38038068000,
+      "lucroLiquido": 448717000,
+      "escala": "MIL"
+    },
+    {
+      "ticker": "NTCO3",
+      "cnpj": "71.673.990/0001-77",
+      "nome": "NATURA COSMÉTICOS S.A.",
+      "ano": 2024,
+      "receita": 21271580000,
+      "lucroLiquido": 1029310000,
+      "escala": "MIL"
+    },
+    {
+      "ticker": "PETR4",
       "cnpj": "33.000.167/0001-01",
       "nome": "PETROLEO BRASILEIRO S.A. PETROBRAS",
       "ano": 2024,
       "receita": 490829000000,
-      "lucroLiquido": null,
+      "lucroLiquido": 37009000000,
+      "escala": "MIL"
+    },
+    {
+      "ticker": "RENT3",
+      "cnpj": "16.670.085/0001-55",
+      "nome": "LOCALIZA RENT A CAR S.A.",
+      "ano": 2024,
+      "receita": 37271558000,
+      "lucroLiquido": 1813310000,
+      "escala": "MIL"
+    },
+    {
+      "ticker": "SUZB3",
+      "cnpj": "60.651.809/0001-05",
+      "nome": "SUZANO HOLDING S.A.",
+      "ano": 2024,
+      "receita": 47405389000,
+      "lucroLiquido": -7092255000,
+      "escala": "MIL"
+    },
+    {
+      "ticker": "VALE3",
+      "cnpj": "33.592.510/0001-54",
+      "nome": "VALE S.A.",
+      "ano": 2024,
+      "receita": 206005000000,
+      "lucroLiquido": 30431000000,
+      "escala": "MIL"
+    },
+    {
+      "ticker": "WEGE3",
+      "cnpj": "84.429.695/0001-11",
+      "nome": "WEG S.A.",
+      "ano": 2024,
+      "receita": 37986941000,
+      "lucroLiquido": 6318763000,
       "escala": "MIL"
     }
   ]

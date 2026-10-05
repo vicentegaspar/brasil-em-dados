@@ -103,7 +103,10 @@ export function totalCargaMensal(dados: OnsCargaMes[]): Observacao[] {
 export type ContaDre = "receita" | "lucro_liquido";
 export const CONTAS_DRE: Record<string, ContaDre> = {
   "3.01": "receita",
-  "3.11.01.001": "lucro_liquido",
+  // Lucro consolidado do período: "3.11" no DRE corporativo e "3.09" no DRE
+  // de bancos/intermediação financeira (ex.: Itaú usa 3.09, conf. DFP 2025).
+  "3.11": "lucro_liquido",
+  "3.09": "lucro_liquido",
 };
 
 export type BalancoEmpresa = {
@@ -120,10 +123,27 @@ export type BalancoEmpresa = {
 
 export type EmpresaCatalogo = { ticker: string; cnpj: string; nome: string };
 
+/**
+ * Catálogo de listadas. CNPJs conferidos contra o cadastro oficial da CVM
+ * (dados.cvm.gov.br — CIA_ABERTA/CAD/DADOS/cad_cia_aberta.csv, situação ATIVO),
+ * em 2026-10. O parser casa por CNPJ exato — nenhum CNPJ inventado.
+ */
 export const EMPRESAS_CATALOGO: EmpresaCatalogo[] = [
-  { ticker: "PETR", cnpj: "33.000.167/0001-01", nome: "Petrobras (PETR4)" },
-  { ticker: "ITUB", cnpj: "60.872.504/0001-23", nome: "Itaú Unibanco (ITUB4)" },
+  { ticker: "PETR4", cnpj: "33.000.167/0001-01", nome: "Petróleo Brasileiro S.A. (PETR4)" },
+  { ticker: "VALE3", cnpj: "33.592.510/0001-54", nome: "Vale S.A. (VALE3)" },
+  { ticker: "ITUB4", cnpj: "60.872.504/0001-23", nome: "Itaú Unibanco Holding (ITUB4)" },
+  { ticker: "BBDC4", cnpj: "60.746.948/0001-12", nome: "Banco Bradesco (BBDC4)" },
   { ticker: "BBAS3", cnpj: "00.000.000/0001-91", nome: "Banco do Brasil (BBAS3)" },
+  { ticker: "ABEV3", cnpj: "07.526.557/0001-00", nome: "Ambev S.A. (ABEV3)" },
+  { ticker: "WEGE3", cnpj: "84.429.695/0001-11", nome: "WEG S.A. (WEGE3)" },
+  { ticker: "JBSS3", cnpj: "02.916.265/0001-60", nome: "JBS S.A. (JBSS3)" },
+  { ticker: "SUZB3", cnpj: "60.651.809/0001-05", nome: "Suzano Holding (SUZB3)" },
+  { ticker: "BRFS3", cnpj: "01.838.723/0001-27", nome: "BRF S.A. (BRFS3)" },
+  { ticker: "NTCO3", cnpj: "71.673.990/0001-77", nome: "Natura Cosméticos (NTCO3)" },
+  { ticker: "MGLU3", cnpj: "47.960.950/0001-21", nome: "Magazine Luiza (MGLU3)" },
+  { ticker: "GGBR4", cnpj: "33.611.500/0001-19", nome: "Gerdau S.A. (GGBR4)" },
+  { ticker: "RENT3", cnpj: "16.670.085/0001-55", nome: "Localiza Rent a Car (RENT3)" },
+  { ticker: "B3SA3", cnpj: "09.346.601/0001-25", nome: "B3 S.A. — Brasil, Bolsa, Balcão (B3SA3)" },
 ];
 
 const ORDEM_PESO: Record<string, number> = { "ÚLTIMO": 2, "PENÚLTIMO": 1 };
