@@ -7,7 +7,8 @@
   "compatibility_date": "2025-10-01",
   "kv_namespaces": [
     {
-      "binding": "CACHE"
+      "binding": "CACHE",
+      "id": "6ff6077631a0419892fb3ff30b860366"
     }
   ]
 }
