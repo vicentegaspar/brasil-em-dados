@@ -1,0 +1,93 @@
+[
+  {
+    "NC": "Nível Territorial (Código)",
+    "NN": "Nível Territorial",
+    "MC": "Unidade de Medida (Código)",
+    "MN": "Unidade de Medida",
+    "V": "Valor",
+    "D1C": "Variável (Código)",
+    "D1N": "Variável",
+    "D2C": "Ano (Código)",
+    "D2N": "Ano",
+    "D3C": "Município (Código)",
+    "D3N": "Município"
+  },
+  {
+    "NC": "6",
+    "NN": "Município",
+    "MC": "40",
+    "MN": "Mil Reais",
+    "V": "68764218",
+    "D1C": "37",
+    "D1N": "Produto Interno Bruto a preços correntes",
+    "D2C": "2022",
+    "D2N": "2022",
+    "D3C": "2927408",
+    "D3N": "Salvador (BA)"
+  },
+  {
+    "NC": "6",
+    "NN": "Município",
+    "MC": "40",
+    "MN": "Mil Reais",
+    "V": "115381698",
+    "D1C": "37",
+    "D1N": "Produto Interno Bruto a preços correntes",
+    "D2C": "2022",
+    "D2N": "2022",
+    "D3C": "3106200",
+    "D3N": "Belo Horizonte (MG)"
+  },
+  {
+    "NC": "6",
+    "NN": "Município",
+    "MC": "40",
+    "MN": "Mil Reais",
+    "V": "380381515",
+    "D1C": "37",
+    "D1N": "Produto Interno Bruto a preços correntes",
+    "D2C": "2022",
+    "D2N": "2022",
+    "D3C": "3304557",
+    "D3N": "Rio de Janeiro (RJ)"
+  },
+  {
+    "NC": "6",
+    "NN": "Município",
+    "MC": "40",
+    "MN": "Mil Reais",
+    "V": "76698777",
+    "D1C": "37",
+    "D1N": "Produto Interno Bruto a preços correntes",
+    "D2C": "2023",
+    "D2N": "2023",
+    "D3C": "2927408",
+    "D3N": "Salvador (BA)"
+  },
+  {
+    "NC": "6",
+    "NN": "Município",
+    "MC": "40",
+    "MN": "Mil Reais",
+    "V": "130197671",
+    "D1C": "37",
+    "D1N": "Produto Interno Bruto a preços correntes",
+    "D2C": "2023",
+    "D2N": "2023",
+    "D3C": "3106200",
+    "D3N": "Belo Horizonte (MG)"
+  },
+  {
+    "NC": "6",
+    "NN": "Município",
+    "MC": "40",
+    "MN": "Mil Reais",
+    "V": "418462360",
+    "D1C": "37",
+    "D1N": "Produto Interno Bruto a preços correntes",
+    "D2C": "2023",
+    "D2N": "2023",
+    "D3C": "3304557",
+    "D3N": "Rio de Janeiro (RJ)"
+  }
+]

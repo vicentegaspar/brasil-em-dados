@@ -1,0 +1,82 @@
+---
+import type { Env } from "../lib/model";
+import { getBalancosSeguro, type Balancos } from "../lib/collectors";
+import { formatarBilhoes } from "../lib/periodos";
+import { env } from "cloudflare:workers";
+
+export const prerender = false;
+
+const E = env as unknown as Env;
+let balancos: Balancos | null = null;
+let erro: string | null = null;
+try {
+  balancos = await getBalancosSeguro(E);
+  if (!balancos) erro = "Não foi possível carregar os balanços da CVM agora.";
+} catch (e) {
+  console.error(String(e));
+  erro = "Não foi possível carregar os balanços da CVM agora.";
+}
+const atuais = balancos ? balancos.empresas.filter((b) => b.ano === Math.max(...balancos!.empresas.map((x) => x.ano))) : [];
+---
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Brasil em Dados — Empresas listadas</title>
+    <style is:global>
+      :root {
+        --bg: #0d1117; --panel: #161b22; --border: #2d333b;
+        --text: #e6edf3; --muted: #8b949e; --accent: #00b478;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; line-height: 1.5; }
+      header { padding: 2.5rem 1.5rem 1rem; max-width: 960px; margin: 0 auto; }
+      header h1 { font-size: 1.8rem; margin: 0 0 .5rem; }
+      header p { color: var(--muted); margin: 0; max-width: 60ch; }
+      main { max-width: 960px; margin: 0 auto; padding: 1.5rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
+      .card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; }
+      .card h2 { font-size: .95rem; margin: 0 0 .25rem; }
+      .ticker { color: var(--muted); font-size: .8rem; }
+      .linha { display: flex; justify-content: space-between; padding: .5rem 0; border-bottom: 1px dashed var(--border); font-variant-numeric: tabular-nums; }
+      .rotulo { color: var(--muted); }
+      .periodo { color: var(--muted); font-size: .8rem; margin-top: .75rem; }
+      .fonte { color: var(--muted); font-size: .75rem; margin-top: .35rem; }
+      .erro { grid-column: 1/-1; border-color: #f85149; color: #ffa198; padding: 1rem; background: var(--panel); border: 1px solid #f85149; border-radius: 10px; }
+      footer { max-width: 960px; margin: 0 auto; padding: 1rem 1.5rem 2.5rem; color: var(--muted); font-size: .85rem; }
+      footer a { color: var(--accent); text-decoration: none; }
+      nav { max-width: 960px; margin: 0 auto; padding: 0 1.5rem; display: flex; gap: 1rem; }
+      nav a { color: var(--accent); text-decoration: none; font-size: .9rem; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>🏦 Empresas listadas — balanços (CVM)</h1>
+      <p>
+        Demonstração do Resultado (DRE consolidada) extraída dos arquivos DFP
+        da CVM (dados abertos). Valores em R$ bilhões, exercício fiscal fechado.
+      </p>
+    </header>
+    <nav>
+      <a href="/">← Painel</a>
+      <a href="/estado/BR">Estados</a>
+      <a href="/api/v1/indicadores">API v1</a>
+    </nav>
+    <main>
+      {erro && <div class="erro">{erro}</div>}
+      {atuais.map((b) => (
+        <article class="card">
+          <h2>{b.nome}</h2>
+          <p class="ticker">{b.ticker} · CNPJ {b.cnpj}</p>
+          <div class="linha"><span class="rotulo">Receita</span><span>{b.receita != null ? `R$ ${formatarBilhoes(b.receita)} bi` : "—"}</span></div>
+          <div class="linha"><span class="rotulo">Lucro líquido</span><span>{b.lucroLiquido != null ? `R$ ${formatarBilhoes(b.lucroLiquido)} bi` : "—"}</span></div>
+          <p class="periodo">Exercício: {b.ano}</p>
+          <p class="fonte">Fonte: CVM DFP ({balancos?.exercicioFonte}) · coletado via open data</p>
+        </article>
+      ))}
+    </main>
+    <footer>
+      <p>Fonte: <a href="https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/DFP/Dados/">CVM — dados abertos DFP</a> · dados redistribuídos de forma resumida (números-síntese com citação).</p>
+    </footer>
+  </body>
+</html>

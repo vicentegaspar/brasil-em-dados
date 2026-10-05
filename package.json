@@ -8,15 +8,18 @@
     "dev": "astro dev",
     "build": "astro build",
     "check": "astro check",
+    "test": "vitest run",
     "deploy": "astro build && wrangler deploy -c wrangler.prod.jsonc"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^14.0.0",
-    "astro": "^7.2.0"
+    "astro": "^7.2.0",
+    "fflate": "^0.8.3"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.4",
     "typescript": "^5.6.0",
+    "vitest": "^5.0.3",
     "wrangler": "^4.0.0"
   }
 }

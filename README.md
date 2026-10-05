@@ -1,22 +1,30 @@
 # 🇧🇷 Brasil em Dados
 
-Painel público e open source de estatísticas do Brasil — população, economia e
-indicadores macroeconômicos — para explorar, comparar e decidir onde viver,
-investir e empreender.
+Painel público e open source de estatísticas do Brasil — juros, câmbio,
+inflação, emprego, PIB, energia e balanços de listadas — para explorar,
+comparar e decidir onde viver, investir e empreender.
+
+**O núcleo é um motor de coleta e análise de dados**: cada fonte primária tem
+um coletor que normaliza tudo em um modelo canônico de séries
+(`fonte → localidade → período → valor`) sempre com fonte, período de
+referência e data de coleta.
 
 ## Stack
 
 - [Astro](https://astro.build) (SSR) + adaptador Cloudflare
-- Cloudflare Workers/Pages + KV (cache das respostas das APIs públicas)
-- Fonte principal: **API IBGE / SIDRA** (servicodados.ibge.gov.br)
+- Cloudflare Workers/Pages + KV (cache de leitura das fontes públicas)
+- Bindings do Workers via `cloudflare:workers` (Astro v7 removeu `Astro.locals.runtime`)
+- Coletores: BCB SGS, IBGE SIDRA/apisidra, ONS (dados abertos), CVM (DFP)
 
 ## Como funciona
 
-- O site consulta a API v3 do IBGE **via servidor**, com **cache-aside em KV**:
-  o IBGE quase nunca é chamado por visita (TTL de horas por indicador), o que
-  respeita os termos de uso da fonte e mantém a resposta rápida.
-- Indicadores aparecem sempre com **período de referência e fonte**. Dado
-  ausente ou falho aparece como erro honesto — nunca como número inventado.
+- Coleta **por request com cache-aside em KV** (TTL 6–24h por tipo de série):
+  as fontes públicas quase nunca são chamadas por visita. Cron agendado é
+  fase futura (ver `docs/fontes.md`).
+- Indicadores aparecem sempre com **período de referência e fonte**. Fonte
+  fora do ar → indicador indisponível com motivo — **nunca número inventado**.
+- Licenças por fonte com semáforo (verde/amarelo/vermelho) em `docs/fontes.md`.
+  Datasets B3 (curva DI) não são usados — exigem licença de redistribuição.
 - Nenhum dado pessoal é coletado. Sem cookies de rastreamento.
 
 ## Rodando localmente
@@ -24,7 +32,8 @@ investir e empreender.
 ```bash
 npm install
 npm run dev        # http://localhost:4321
-npm run check      # typecheck
+npm run check      # typecheck (astro check)
+npm test           # vitest (parsers/coletores testados contra fixtures reais)
 npm run build      # build de produção
 ```
 
@@ -33,18 +42,23 @@ O KV `CACHE` é resolvido em dev via `platformProxy` do `wrangler.jsonc`
 (`npx wrangler kv namespace create CACHE`) e preencha o `id` no
 `wrangler.jsonc`.
 
-## Endpoints
+## Páginas e API
 
-- `GET /` — painel (SSR)
-- `GET /api/indicadores.json` — JSON público com os mesmos indicadores
+- `GET /` — painel Brasil (Selic, câmbio, IPCA, desocupação, informalidade, PIB, carga de energia)
+- `GET /estado/<sigla>` — drill-down por UF (PIB, participação, desocupação, informalidade)
+- `GET /empresas` — balanços de PETR, ITUB, BBAS3 (DRE consolidada da CVM)
+- `GET /api/v1/indicadores` — API v1 (JSON, séries completas; `?formato=csv` exporta CSV) — docs em `docs/api.md`
+- `GET /api/indicadores.json` — endpoint legado do F1 (população + IPCA 12m)
 
 ## Roadmap
 
-- Drill-down Brasil → estado → município (localidades IBGE)
-- PIB municipal, IDHM, empresas, energia
+- Cron de coleta (Workers Cron Triggers / GitHub Actions)
+- PIB municipal no drill-down (já coletado via SIDRA 5938 N6)
+- Emprego formal (CAGED/RAIS) e finanças públicas (Siconfi) — fontes pendentes, ver `docs/fontes.md`
 - Scorecards comparativos ("vale a pena viver/investir aqui?")
-- Gráficos interativos por indicador
+- Export Parquet/R2 de datasets completos
 
 ## Licença
 
-MIT — veja [LICENSE](LICENSE).
+MIT — veja [LICENSE](LICENSE). Dados públicos de fontes oficiais; atribuição
+à fonte original em cada indicador.

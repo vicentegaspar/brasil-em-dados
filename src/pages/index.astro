@@ -1,16 +1,78 @@
 ---
-import { getIndicadores, type Env, type Indicador } from "../lib/ibge";
+import type { Env, IndicadorExibicao } from "../lib/model";
+import {
+  getCambio,
+  getCargaEnergia,
+  getDesocupacaoBrasil,
+  getInformalidadeBrasil,
+  getIpcaMensal,
+  getPibBrasil,
+  getSelicMeta,
+} from "../lib/collectors";
 import { env } from "cloudflare:workers";
 
-let indicadores: Indicador[] = [];
-let erro: string | null = null;
+const E = env as unknown as Env;
+
+type Card = {
+  nome: string;
+  valor: string;
+  unidade: string;
+  variacaoPct: number | null;
+  periodo: string;
+  serie: { valor: number }[];
+  fonte: string;
+};
+
+function paraCard(ind: IndicadorExibicao): Card {
+  return {
+    nome: ind.nome,
+    valor: ind.valorFormatado || "—",
+    unidade: ind.unidade,
+    variacaoPct: ind.variacaoPct,
+    periodo: ind.periodoFormatado,
+    serie: ind.serie.map((o) => ({ valor: o.valor })),
+    fonte: ind.fonte,
+  };
+}
+
+function cardPendente(nome: string, motivo: string): Card {
+  return {
+    nome,
+    valor: "indisponível",
+    unidade: "",
+    variacaoPct: null,
+    periodo: motivo,
+    serie: [],
+    fonte: "",
+  };
+}
+
+let cards: Card[] = [];
+let erros: string[] = [];
 try {
-  const res = await getIndicadores(env as unknown as Env);
-  indicadores = res.indicadores;
-  if (indicadores.length === 0) erro = "Não foi possível carregar os dados do IBGE agora.";
+  const [selic, cambio, ipca, desoc, informal, pib, carga] = await Promise.all([
+    getSelicMeta(E),
+    getCambio(E),
+    getIpcaMensal(E),
+    getDesocupacaoBrasil(E),
+    getInformalidadeBrasil(E),
+    getPibBrasil(E),
+    getCargaEnergia(E),
+  ]);
+  for (const ind of [selic, cambio, ipca, desoc, informal, pib, carga.total]) {
+    if (ind.indisponivelMotivo) {
+      cards.push(cardPendente(ind.nome, ind.indisponivelMotivo));
+      erros.push(ind.indisponivelMotivo);
+    } else {
+      cards.push(paraCard(ind));
+    }
+  }
+  if (cards.every((c) => c.valor === "indisponível" || c.valor === "—")) {
+    erros = ["Nenhum indicador pôde ser coletado agora. Tente novamente em instantes."];
+  }
 } catch (e) {
-  erro = "Não foi possível carregar os dados do IBGE agora.";
   console.error(String(e));
+  erros = ["Não foi possível carregar os dados agora. Tente novamente em instantes."];
 }
 
 function sparkline(pontos: { valor: number }[]): string {
@@ -34,13 +96,12 @@ function sparkline(pontos: { valor: number }[]): string {
   </svg>`;
 }
 ---
-
 <!doctype html>
 <html lang="pt-BR">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Painel público de estatísticas do Brasil: população, economia e indicadores macroeconômicos. Dados oficiais do IBGE, atualizados com cache e sem rastreamento." />
+    <meta name="description" content="Painel público de estatísticas do Brasil: juros, câmbio, inflação, emprego, PIB e energia. Dados oficiais do IBGE, BCB e ONS, com fonte, referência e data de coleta." />
     <title>Brasil em Dados — estatísticas do Brasil</title>
     <style is:global>
       :root {
@@ -67,6 +128,8 @@ function sparkline(pontos: { valor: number }[]): string {
       }
       header h1 { font-size: 2rem; margin: 0 0 .5rem; }
       header p { color: var(--muted); margin: 0; max-width: 60ch; }
+      nav { max-width: 960px; margin: 0 auto; padding: 0 1.5rem; display: flex; gap: 1rem; }
+      nav a { color: var(--accent); text-decoration: none; font-size: .9rem; }
       main {
         max-width: 960px;
         margin: 0 auto;
@@ -97,6 +160,7 @@ function sparkline(pontos: { valor: number }[]): string {
       .periodo { color: var(--muted); font-size: .8rem; }
       .spark { margin-top: .75rem; }
       .fonte { color: var(--muted); font-size: .75rem; margin-top: .75rem; }
+      .indisponivel { color: #d29922; font-size: .8rem; }
       .erro {
         grid-column: 1 / -1;
         border-color: #f85149;
@@ -120,37 +184,50 @@ function sparkline(pontos: { valor: number }[]): string {
     <header>
       <h1>🇧🇷 Brasil em Dados</h1>
       <p>
-        Estatísticas do Brasil em tempo quase real, direto das fontes oficiais.
-        Feito para explorar, comparar e decidir onde viver, investir e empreender.
+        Estatísticas do Brasil direto das fontes oficiais — juros, câmbio, inflação,
+        emprego, PIB e energia — sempre com fonte, período de referência e data de coleta.
       </p>
     </header>
+    <nav>
+      <a href="/">Painel</a>
+      <a href="/empresas">Empresas</a>
+      <a href="/estado/SP">Estados (ex.: São Paulo)</a>
+      <a href="/api/v1/indicadores">API v1</a>
+    </nav>
 
     <main>
-      {erro && <div class="erro">{erro} Tente novamente em instantes.</div>}
-      {indicadores.map((ind) => (
+      {erros.length > 0 && cards.length === 0 && <div class="erro">{erros.join(" ")}</div>}
+      {cards.map((c) => (
         <article class="card">
-          <h2>{ind.nome}</h2>
-          <div>
-            <span class="valor">{ind.valor}</span>
-            <span class="unidade">{ind.unidade}</span>
-          </div>
-          {ind.variacao != null && (
-            <p class={`delta ${ind.variacao >= 0 ? "up" : "down"}`}>
-              {ind.variacao >= 0 ? "▲" : "▼"} {Math.abs(ind.variacao).toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%
+          <h2>{c.nome}</h2>
+          {c.valor !== "indisponível" ? (
+            <div>
+              <span class="valor">{c.valor}</span>
+              <span class="unidade">{c.unidade}</span>
+            </div>
+          ) : (
+            <div><span class="indisponivel">Indisponível — {c.periodo}</span></div>
+          )}
+          {c.variacaoPct != null && (
+            <p class={`delta ${c.variacaoPct >= 0 ? "up" : "down"}`}>
+              {c.variacaoPct >= 0 ? "▲" : "▼"} {Math.abs(c.variacaoPct).toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%
             </p>
           )}
-          <p class="periodo">Referência: {ind.periodo}</p>
-          <div class="spark" set:html={sparkline(ind.serie)} />
-          <p class="fonte">Fonte: {ind.fonte}</p>
+          <p class="periodo">Referência: {c.periodo}</p>
+          <div class="spark" set:html={sparkline(c.serie)} />
+          <p class="fonte">Fonte: {c.fonte}</p>
         </article>
       ))}
     </main>
 
     <footer>
       <p>
-        Dados: <a href="https://servicodados.ibge.gov.br/api/docs/">API IBGE (SIDRA)</a> ·
+        Dados: <a href="https://servicodados.ibge.gov.br/api/docs/">IBGE (SIDRA)</a> ·
+        <a href="https://api.bcb.gov.br/">BCB (SGS)</a> ·
+        <a href="https://dados.ons.org.br/">ONS (dados abertos, CC-BY)</a> ·
+        <a href="https://dados.cvm.gov.br/">CVM (open data)</a> ·
         Código: <a href="https://github.com/vicentegaspar/brasil-em-dados">open source, MIT</a> ·
-        Consultas ao IBGE são cacheadas e limitadas — este site não sobrecarrega as fontes públicas.
+        Consultas são cacheadas em KV — este site não sobrecarrega as fontes públicas.
       </p>
     </footer>
   </body>

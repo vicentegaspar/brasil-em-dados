@@ -1,0 +1,80 @@
+---
+// Estado: drill-down Brasil -> UF (N3) com PIB, participação, desocupação e informalidade.
+import type { Env } from "../../lib/model";
+import { getIndicadoresUf } from "../../lib/collectors";
+import { UFS } from "../../lib/localidades";
+import { env } from "cloudflare:workers";
+
+export const prerender = false;
+
+const E = env as unknown as Env;
+const { sigla } = Astro.params;
+const dados = sigla ? await getIndicadoresUf(E, sigla) : null;
+const uf = dados?.uf ?? null;
+---
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Brasil em Dados — {uf ? uf.nome : "estado não encontrado"}</title>
+    <style is:global>
+      :root {
+        --bg: #0d1117; --panel: #161b22; --border: #2d333b;
+        --text: #e6edf3; --muted: #8b949e; --accent: #00b478;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; line-height: 1.5; }
+      header { padding: 2.5rem 1.5rem 1rem; max-width: 960px; margin: 0 auto; }
+      header h1 { font-size: 1.8rem; margin: 0 0 .5rem; }
+      header p { color: var(--muted); margin: 0; }
+      main { max-width: 960px; margin: 0 auto; padding: 1.5rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
+      .card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; }
+      .card h2 { font-size: .85rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin: 0 0 .75rem; }
+      .valor { font-size: 2rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+      .unidade { color: var(--muted); font-size: .9rem; margin-left: .4rem; }
+      .periodo { color: var(--muted); font-size: .8rem; }
+      .fonte { color: var(--muted); font-size: .75rem; margin-top: .75rem; }
+      .indisponivel { color: #d29922; font-size: .85rem; }
+      .ufs { max-width: 960px; margin: 0 auto; padding: 0 1.5rem 2rem; display: flex; flex-wrap: wrap; gap: .5rem; }
+      .ufs a { color: var(--accent); text-decoration: none; border: 1px solid var(--border); border-radius: 6px; padding: .25rem .6rem; font-size: .85rem; }
+      footer { max-width: 960px; margin: 0 auto; padding: 1rem 1.5rem 2.5rem; color: var(--muted); font-size: .85rem; }
+      footer a, header a { color: var(--accent); text-decoration: none; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>📍 {uf ? uf.nome : "Estado não encontrado"}</h1>
+      <p>Drill-down Brasil → UF: PIB e mercado de trabalho com dados do IBGE.</p>
+    </header>
+    <div class="ufs">
+      <a href="/estado/BR">🇧🇷 Brasil</a>
+      {UFS.map((u) => <a href={`/estado/${u.sigla}`}>{u.sigla}</a>)}
+    </div>
+    <main>
+      {!dados && <div class="card"><p>Sigla de UF desconhecida: <strong>{sigla}</strong>.</p></div>}
+      {dados && [dados.pib, dados.pibParticipacao, dados.desocupacao, dados.informalidade].map((ind) => (
+        <article class="card">
+          <h2>{ind.nome}</h2>
+          {ind.indisponivelMotivo ? (
+            <div><span class="indisponivel">Indisponível — {ind.indisponivelMotivo}</span></div>
+          ) : (
+            <div>
+              <span class="valor">{ind.valorFormatado}</span>
+              <span class="unidade">{ind.unidade}</span>
+              <p class="periodo">Referência: {ind.periodoFormatado} · Coletado em {ind.coletadoEm.slice(0, 10)}</p>
+              <p class="fonte">Fonte: {ind.fonte}</p>
+            </div>
+          )}
+        </article>
+      ))}
+    </main>
+    <footer>
+      <p>
+        <a href="/">← Painel</a> ·
+        Fontes: <a href="https://sidra.ibge.gov.br/">IBGE SIDRA</a> ·
+        <a href="/api/v1/indicadores">API v1</a>
+      </p>
+    </footer>
+  </body>
+</html>
