@@ -1,0 +1,103 @@
+---
+// Comparação internacional lado a lado: Brasil x EUA x Japão (+ 8 países),
+// 6 indicadores de mercado do World Bank (CC-BY 4.0, sem chave).
+import { env } from "cloudflare:workers";
+import type { Env, IndicadorExibicao } from "../lib/model";
+import { getPainelPaises, INDICADORES_WB, PAISES } from "../lib/worldbank";
+import Base from "../layouts/Base.astro";
+
+export const prerender = false;
+
+const E = env as unknown as Env;
+const painel = await getPainelPaises(E);
+
+type Celula = { valor: string; variacao: number | null; periodo: string };
+function celula(ind: IndicadorExibicao): Celula {
+  if (ind.indisponivelMotivo) return { valor: "—", variacao: null, periodo: "" };
+  return { valor: ind.valorFormatado, variacao: ind.variacaoPct, periodo: ind.periodo };
+}
+
+function fmtVar(v: number | null): string {
+  if (v == null) return "";
+  const s = Math.abs(v).toLocaleString("pt-BR", { maximumFractionDigits: 2 });
+  return `${v >= 0 ? "+" : "−"}${s}`;
+}
+---
+
+<Base titulo="Comparação internacional" paginaAtiva="paises" descricao="Brasil x EUA x Japão (e mais 8 países): crescimento do PIB, PIB per capita, desemprego, inflação, população e dívida — World Bank Open Data (CC-BY 4.0).">
+  <main class="conteiner">
+    <section class="cabecalho">
+      <h1>Comparação internacional</h1>
+      <p>
+        Indicadores de mercado para Brasil, EUA, Japão e mais 8 países.
+        Fonte: <a href="https://api.worldbank.org/">World Bank Open Data API</a>
+        (CC-BY 4.0, sem chave). Cada célula traz o último ano disponível do país;
+        a coluna de variação compara o ano anterior em pontos percentuais (séries
+        em %) ou variação percentual (séries em unidade). A API pode atrasar anos
+        para alguns países — o ano exibido é sempre o real da fonte.
+      </p>
+    </section>
+
+    {painel.erros.length > 0 && (
+      <div class="aviso">
+        {painel.erros.map((e) => <p style="margin:0 0 4px">{e} — indicador exibido como indisponível, sem número inventado.</p>)}
+      </div>
+    )}
+
+    {INDICADORES_WB.map((def) => {
+      const serie = painel.porIndicador[def.codigo];
+      return (
+        <section style="margin-bottom: 32px">
+          <h2 style="font-size:20px; margin:0 0 4px">{def.nome}</h2>
+          <p class="fonte-ref" style="margin:0 0 12px">
+            Código {def.codigo} · Fonte:
+            <a href={def.fonteUrl}>World Bank</a> (CC-BY 4.0)
+          </p>
+          {!serie ? (
+            <div class="aviso">Indicador indisponível agora — fonte não respondeu. Sem valor de reposição.</div>
+          ) : (
+            <div class="tabela-wrap">
+              <table class="tabela">
+                <thead>
+                  <tr>
+                    <th>País</th>
+                    <th class="num">Valor</th>
+                    <th class="num">Variação anual</th>
+                    <th class="num">Ano de referência</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {PAISES.map((cod) => {
+                    const c = celula(serie[cod.iso3]);
+                    const cls = c.variacao == null ? "" : c.variacao >= 0 ? "up" : "down";
+                    const destaque = cod.iso3 === "BRA";
+                    return (
+                      <tr style={destaque ? "background: rgba(0,180,120,0.06)" : ""}>
+                        <td><strong>{cod.nome}</strong>{destaque && <span class="badge verde" style="margin-left:8px">Brasil</span>}</td>
+                        <td class="num">{c.valor} <span style="color:var(--muted); font-size:12px">{c.valor === "—" ? "" : def.unidade}</span></td>
+                        <td class={`num ${cls}`}>{fmtVar(c.variacao) || "—"}</td>
+                        <td class="num periodo-ref">{c.periodo || "—"}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+      );
+    })}
+
+    <section class="card" style="margin-bottom:32px">
+      <h2 class="card-label">Metodologia</h2>
+      <p style="font-size:14px; color:var(--muted); margin:0">
+        Variação anual (YoY): para séries em percentual (crescimento, desemprego,
+        inflação, dívida) a variação é a diferença em pontos percentuais entre o
+        ano corrente e o anterior; para séries em unidade (PIB per capita,
+        população) é a variação % relativa. Comparação de curvas no tempo está em
+        <a href="/graficos">Gráficos</a>. PIB per capita derivado do IBGE (PIB
+        SIDRA 5938 ÷ população estimada 6579) na página <a href="/scorecards">Scorecards</a>.
+      </p>
+    </section>
+  </main>
+</Base>
