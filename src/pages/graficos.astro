@@ -1,0 +1,262 @@
+---
+// Gráficos interativos: 1..N indicadores × 1..N localidades no mesmo eixo
+// de tempo, com legendas, tooltip no hover e filtro de período.
+// Chart.js UMD self-hosted (public/vendor/chart.umd.js) — sem CDN, sem
+// framework JS. Dados via /api/v1/serie?id=... (JSON já versionado).
+import Base from "../layouts/Base.astro";
+
+export const prerender = false;
+
+// Catálogo de séries selecionáveis (id -> rótulo) — agrupado por fonte.
+const GRUPOS: { grupo: string; series: { id: string; nome: string }[] }[] = [
+  {
+    grupo: "World Bank (países, anual)",
+    series: [
+      { id: "wb-NY.GDP.MKTP.KD.ZG", nome: "Crescimento do PIB (%)" },
+      { id: "wb-NY.GDP.PCAP.CD", nome: "PIB per capita (US$)" },
+      { id: "wb-SL.UEM.TOTL.ZS", nome: "Desemprego (%)" },
+      { id: "wb-FP.CPI.TOTL.ZG", nome: "Inflação (%)" },
+      { id: "wb-SP.POP.TOTL", nome: "População (hab)" },
+      { id: "wb-GC.DOD.TOTL.GD.ZS", nome: "Dívida governo central (% PIB)" },
+    ],
+  },
+  {
+    grupo: "BCB SGS (Brasil)",
+    series: [
+      { id: "bcb-selic", nome: "Selic meta (% a.a.)" },
+      { id: "bcb-cambio", nome: "Dólar PTAX compra (R$/US$)" },
+      { id: "bcb-ipca-mensal", nome: "IPCA mensal (%)" },
+    ],
+  },
+  {
+    grupo: "IBGE (Brasil)",
+    series: [
+      { id: "sidra-desocupacao", nome: "Desocupação Brasil (%) — trimestral móvel" },
+      { id: "sidra-ipca-12m", nome: "IPCA acumulado 12 meses (%)" },
+      { id: "sidra-informalidade", nome: "Informalidade (%)" },
+      { id: "sidra-pib", nome: "PIB corrente (R$ bi)" },
+      { id: "sidra-populacao", nome: "População estimada (hab)" },
+    ],
+  },
+  {
+    grupo: "ONS (Brasil)",
+    series: [{ id: "ons-carga", nome: "Carga de energia total (MWmed)" }],
+  },
+];
+
+const PAISES = [
+  ["BRA", "Brasil"],
+  ["USA", "Estados Unidos"],
+  ["JPN", "Japão"],
+  ["ARG", "Argentina"],
+  ["MEX", "México"],
+  ["CHL", "Chile"],
+  ["DEU", "Alemanha"],
+  ["CHN", "China"],
+  ["IND", "Índia"],
+  ["KOR", "Coreia do Sul"],
+  ["PRT", "Portugal"],
+];
+---
+
+<Base titulo="Gráficos" paginaAtiva="graficos" descricao="Gráficos interativos: compare indicadores e localidades no tempo, com múltiplas curvas, legendas e tooltip.">
+  <main class="conteiner">
+    <section class="cabecalho">
+      <h1>Gráficos</h1>
+      <p>
+        Compare 1..N séries no mesmo gráfico. Para séries do World Bank, escolha o
+        indicador e os países (ex.: <em>inflação</em> para Brasil, EUA e Japão).
+        Para séries nacionais (BCB/IBGE/ONS), escolha a série direto. O eixo X é o
+        tempo; quando as séries têm periodicidades diferentes, cada ponto é plotado
+        na sua data e o tooltip mostra o período exato. Filtro de período ao fundo.
+      </p>
+    </section>
+
+    <section class="card" style="margin-bottom:16px">
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px">
+        <div>
+          <label for="sel-serie" style="font-size:12px; color:var(--muted); display:block; margin-bottom:4px">Indicador / série (1..N — com <kbd>Ctrl</kbd>)</label>
+          <select id="sel-serie" multiple size="6" style="width:100%; background:var(--surface); color:var(--text); border:1px solid var(--border); border-radius:8px; padding:8px">
+            {GRUPOS.map((g) => (
+              <optgroup label={g.grupo}>
+                {g.series.map((s) => <option value={s.id}>{s.nome}</option>)}
+              </optgroup>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label for="sel-paises" style="font-size:12px; color:var(--muted); display:block; margin-bottom:4px">Localidades — apenas séries World Bank (1..N)</label>
+          <select id="sel-paises" multiple size="6" style="width:100%; background:var(--surface); color:var(--text); border:1px solid var(--border); border-radius:8px; padding:8px">
+            {PAISES.map(([iso3, nome]) => <option value={iso3}>{nome}</option>)}
+          </select>
+          <p class="fonte-ref" style="margin-top:6px">Nenhuma localidade selecionada = Brasil (BRA).</p>
+        </div>
+      </div>
+      <div style="display:flex; gap:16px; align-items:end; flex-wrap:wrap; margin-top:12px">
+        <div>
+          <label for="filtro-inicio" style="font-size:12px; color:var(--muted); display:block">Início (ano ou AAAA-MM)</label>
+          <input id="filtro-inicio" placeholder="ex.: 2015" style="background:var(--surface); color:var(--text); border:1px solid var(--border); border-radius:8px; padding:6px 10px; width:140px" />
+        </div>
+        <div>
+          <label for="filtro-fim" style="font-size:12px; color:var(--muted); display:block">Fim (ano ou AAAA-MM)</label>
+          <input id="filtro-fim" placeholder="ex.: 2024" style="background:var(--surface); color:var(--text); border:1px solid var(--border); border-radius:8px; padding:6px 10px; width:140px" />
+        </div>
+        <div>
+          <label style="font-size:12px; color:var(--muted); display:block">Janela rápida</label>
+          <select id="janela" style="background:var(--surface); color:var(--text); border:1px solid var(--border); border-radius:8px; padding:6px 10px">
+            <option value="">tudo</option>
+            <option value="5a">últimos 5 anos</option>
+            <option value="10a">últimos 10 anos</option>
+          </select>
+        </div>
+        <button id="botao-atualizar" style="background:var(--pos); color:#06251a; border:none; border-radius:8px; padding:8px 16px; font-weight:600; cursor:pointer">Atualizar</button>
+      </div>
+      <p class="aviso" id="mensagem" style="display:none; margin-top:12px"></p>
+    </section>
+
+    <section class="card" style="height:460px">
+      <canvas id="grafico" aria-label="Gráfico de séries temporais"></canvas>
+    </section>
+
+    <p class="fonte-ref" style="margin-top:12px">
+      Fonte dos dados: <a href="/api/v1/serie?id=bcb-selic">/api/v1/serie</a> — World Bank (CC-BY 4.0), BCB SGS, IBGE SIDRA, ONS. Cada curva usa o último ano/mês disponível da fonte; períodos incompletos não entram.
+    </p>
+  </main>
+
+  <script src="/vendor/chart.umd.js" is:inline></script>
+  <script is:inline>
+    // Seleções padrão: caso de uso obrigatório — IPCA Brasil x EUA x Japão.
+    (function inicializar() {
+      const selSerie = document.getElementById("sel-serie");
+      selSerie.value = ["wb-FP.CPI.TOTL.ZG"];
+      for (const opt of selSerie.options) if (opt.value === "wb-FP.CPI.TOTL.ZG") opt.selected = true;
+      const selPaises = document.getElementById("sel-paises");
+      for (const opt of selPaises.options) if (["BRA", "USA", "JPN"].includes(opt.value)) opt.selected = true;
+      atualizar();
+    })();
+
+    let grafico = null;
+    const CORES = ["#00b478", "#4c8dff", "#f5b83d", "#f56a5e", "#b07cff", "#38c7d8", "#ff9ad5", "#8ea04a", "#c2c9d1", "#e07a4a", "#7fa650"];
+
+    function aviso(msg) {
+      const el = document.getElementById("mensagem");
+      if (msg) {
+        el.textContent = msg;
+        el.style.display = "block";
+      } else {
+        el.style.display = "none";
+      }
+    }
+
+    function inicioFim() {
+      const janela = document.getElementById("janela").value;
+      if (janela) {
+        const anos = janela === "5a" ? 5 : 10;
+        const fim = new Date().getFullYear();
+        return { inicio: String(fim - anos), fim: String(fim) };
+      }
+      const i = document.getElementById("filtro-inicio").value.trim();
+      const f = document.getElementById("filtro-fim").value.trim();
+      return { inicio: i, fim: f };
+    }
+
+    function construirIds() {
+      const series = [...document.getElementById("sel-serie").selectedOptions].map((o) => o.value);
+      const paises = [...document.getElementById("sel-paises").selectedOptions].map((o) => o.value);
+      const ids = [];
+      for (const s of series) {
+        if (s.startsWith("wb-")) {
+          const alvo = paises.length ? paises : ["BRA"];
+          for (const p of alvo) ids.push(`${s}-${p}`);
+        } else {
+          ids.push(s);
+        }
+      }
+      return ids.slice(0, 12); // guard: legibilidade do gráfico
+    }
+
+    async function serieJson(id, inicio, fim) {
+      const qs = new URLSearchParams({ id });
+      if (inicio) qs.set("inicio", inicio);
+      if (fim) qs.set("fim", fim);
+      const r = await fetch(`/api/v1/serie?${qs}`);
+      if (!r.ok) throw new Error(`HTTP ${r.status} em ${id}`);
+      return r.json();
+    }
+
+    async function atualizar() {
+      aviso("");
+      const { inicio, fim } = inicioFim();
+      const ids = construirIds();
+      if (ids.length === 0) {
+        aviso("Escolha pelo menos uma série para plotar.");
+        return;
+      }
+      const resultados = await Promise.allSettled(ids.map((id) => serieJson(id, inicio, fim)));
+      const dados = [];
+      for (let i = 0; i < ids.length; i++) {
+        const r = resultados[i];
+        if (r.status !== "fulfilled") {
+          aviso(`Falha ao carregar ${ids[i]}: ${r.reason.message}`);
+          continue;
+        }
+        const s = r.value;
+        if (s.indisponivel || (s.observacoes ?? []).length === 0) {
+          aviso(`Série indisponível: ${s.nome} (${s.indisponivel ?? "sem observações"})`);
+          continue;
+        }
+        dados.push(s);
+      }
+      if (dados.length === 0) {
+        aviso("Nenhuma série retornou dados — fonte indisponível agora. Sem número inventado; tente novamente.");
+        if (grafico) { grafico.destroy(); grafico = null; }
+        return;
+      }
+      desenhar(dados);
+    }
+
+    function desenhar(dados) {
+      const cores = CORES.slice();
+      // rótulo do eixo X: períodos ordenados
+      const todos = new Set();
+      for (const d of dados) for (const o of d.observacoes) todos.add(o.periodo);
+      const periodos = [...todos].sort();
+      const datasets = dados.map((d, i) => ({
+        label: `${d.nome} (${d.unidade})`,
+        data: d.observacoes.map((o) => ({ x: o.periodo, y: o.valor })),
+        borderColor: cores[i % cores.length],
+        backgroundColor: cores[i % cores.length],
+        pointRadius: 2,
+        borderWidth: 2,
+        tension: 0.15,
+      }));
+      const ctx = document.getElementById("grafico");
+      if (grafico) grafico.destroy();
+      grafico = new Chart(ctx, {
+        type: "line",
+        data: { datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: "nearest", intersect: false },
+          scales: {
+            x: { ticks: { color: "#93a1b0", maxTicksLimit: 14 }, grid: { color: "rgba(31,39,51,0.7)" } },
+            y: { ticks: { color: "#93a1b0", font: { family: "Inter, system-ui, sans-serif" } }, grid: { color: "rgba(31,39,51,0.7)" } },
+          },
+          plugins: {
+            legend: { labels: { color: "#e6edf3", font: { family: "Inter, system-ui, sans-serif", size: 12 } } },
+            tooltip: {
+              callbacks: {
+                title: (items) => `Período: ${items[0].raw.x}`,
+                label: (item) => `${item.dataset.label}: ${Number(item.raw.y).toLocaleString("pt-BR", { maximumFractionDigits: 4 })}`,
+              },
+            },
+          },
+        },
+      });
+    }
+
+    document.getElementById("botao-atualizar").addEventListener("click", atualizar);
+    document.getElementById("janela").addEventListener("change", atualizar);
+  </script>
+</Base>
