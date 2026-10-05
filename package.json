@@ -1,0 +1,22 @@
+{
+  "name": "brasil-em-dados",
+  "version": "0.1.0",
+  "description": "Painel público de estatísticas do Brasil em tempo quase real — dados do IBGE",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "check": "astro check",
+    "deploy": "astro build && wrangler deploy -c wrangler.prod.jsonc"
+  },
+  "dependencies": {
+    "@astrojs/cloudflare": "^14.0.0",
+    "astro": "^7.2.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.4",
+    "typescript": "^5.6.0",
+    "wrangler": "^4.0.0"
+  }
+}

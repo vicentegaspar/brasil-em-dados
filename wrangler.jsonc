@@ -1,0 +1,13 @@
+// Config raiz: SOMENTE bindings e vars (sem main/assets — o build do Astro
+// gera o wrangler.json do worker em dist/server/; deploy de produção usa
+// wrangler.prod.jsonc, gitignored, com main+assets apontando para dist/).
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "brasil-em-dados",
+  "compatibility_date": "2025-10-01",
+  "kv_namespaces": [
+    {
+      "binding": "CACHE"
+    }
+  ]
+}

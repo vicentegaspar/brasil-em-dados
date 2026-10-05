@@ -1,0 +1,157 @@
+---
+import { getIndicadores, type Env, type Indicador } from "../lib/ibge";
+import { env } from "cloudflare:workers";
+
+let indicadores: Indicador[] = [];
+let erro: string | null = null;
+try {
+  const res = await getIndicadores(env as unknown as Env);
+  indicadores = res.indicadores;
+  if (indicadores.length === 0) erro = "Não foi possível carregar os dados do IBGE agora.";
+} catch (e) {
+  erro = "Não foi possível carregar os dados do IBGE agora.";
+  console.error(String(e));
+}
+
+function sparkline(pontos: { valor: number }[]): string {
+  if (pontos.length < 2) return "";
+  const vals = pontos.map((p) => p.valor);
+  const min = Math.min(...vals);
+  const max = Math.max(...vals);
+  const w = 220;
+  const h = 48;
+  const step = w / (pontos.length - 1);
+  const coords = pontos.map((p, i) => {
+    const x = i * step;
+    const y = h - ((p.valor - min) / (max - min || 1)) * (h - 6) - 3;
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  });
+  const line = `M${coords.join(" L")}`;
+  const area = `${line} L${w},${h} L0,${h} Z`;
+  return `<svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" aria-hidden="true">
+    <path d="${area}" fill="rgba(0,180,120,0.12)"/>
+    <path d="${line}" fill="none" stroke="#00b478" stroke-width="2" stroke-linejoin="round"/>
+  </svg>`;
+}
+---
+
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Painel público de estatísticas do Brasil: população, economia e indicadores macroeconômicos. Dados oficiais do IBGE, atualizados com cache e sem rastreamento." />
+    <title>Brasil em Dados — estatísticas do Brasil</title>
+    <style is:global>
+      :root {
+        --bg: #0d1117;
+        --panel: #161b22;
+        --border: #2d333b;
+        --text: #e6edf3;
+        --muted: #8b949e;
+        --accent: #00b478;
+        --accent-dim: #0a5c40;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        line-height: 1.5;
+      }
+      header {
+        padding: 2.5rem 1.5rem 1rem;
+        max-width: 960px;
+        margin: 0 auto;
+      }
+      header h1 { font-size: 2rem; margin: 0 0 .5rem; }
+      header p { color: var(--muted); margin: 0; max-width: 60ch; }
+      main {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 1.5rem;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1rem;
+      }
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 1.25rem;
+      }
+      .card h2 {
+        font-size: .85rem;
+        font-weight: 500;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        margin: 0 0 .75rem;
+      }
+      .valor { font-size: 2rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+      .unidade { color: var(--muted); font-size: .9rem; margin-left: .4rem; }
+      .delta { font-size: .85rem; margin-top: .35rem; }
+      .up { color: var(--accent); }
+      .down { color: #f85149; }
+      .periodo { color: var(--muted); font-size: .8rem; }
+      .spark { margin-top: .75rem; }
+      .fonte { color: var(--muted); font-size: .75rem; margin-top: .75rem; }
+      .erro {
+        grid-column: 1 / -1;
+        border-color: #f85149;
+        color: #ffa198;
+        padding: 1rem;
+        background: var(--panel);
+        border: 1px solid #f85149;
+        border-radius: 10px;
+      }
+      footer {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 1rem 1.5rem 2.5rem;
+        color: var(--muted);
+        font-size: .85rem;
+      }
+      footer a, header a { color: var(--accent); text-decoration: none; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>🇧🇷 Brasil em Dados</h1>
+      <p>
+        Estatísticas do Brasil em tempo quase real, direto das fontes oficiais.
+        Feito para explorar, comparar e decidir onde viver, investir e empreender.
+      </p>
+    </header>
+
+    <main>
+      {erro && <div class="erro">{erro} Tente novamente em instantes.</div>}
+      {indicadores.map((ind) => (
+        <article class="card">
+          <h2>{ind.nome}</h2>
+          <div>
+            <span class="valor">{ind.valor}</span>
+            <span class="unidade">{ind.unidade}</span>
+          </div>
+          {ind.variacao != null && (
+            <p class={`delta ${ind.variacao >= 0 ? "up" : "down"}`}>
+              {ind.variacao >= 0 ? "▲" : "▼"} {Math.abs(ind.variacao).toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%
+            </p>
+          )}
+          <p class="periodo">Referência: {ind.periodo}</p>
+          <div class="spark" set:html={sparkline(ind.serie)} />
+          <p class="fonte">Fonte: {ind.fonte}</p>
+        </article>
+      ))}
+    </main>
+
+    <footer>
+      <p>
+        Dados: <a href="https://servicodados.ibge.gov.br/api/docs/">API IBGE (SIDRA)</a> ·
+        Código: <a href="https://github.com/vicentegaspar/brasil-em-dados">open source, MIT</a> ·
+        Consultas ao IBGE são cacheadas e limitadas — este site não sobrecarrega as fontes públicas.
+      </p>
+    </footer>
+  </body>
+</html>
