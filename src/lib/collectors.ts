@@ -374,23 +374,17 @@ export type Balancos = { empresas: BalancoEmpresa[]; exercicioFonte: string };
 
 /**
  * Balanços das listadas no catálogo, a partir do DFP da CVM (open data).
- * O zip é baixado e descompactado no runtime (fflate) e o resultado parseado
- * vai para o KV com TTL de 24h — o download não acontece a cada visita.
+ * Coletor de BUILD: o zip anual é pesado para o runtime do Workers (limite de
+ * CPU — error 1102 em produção). O script scripts/generate-empresas.ts baixa,
+ * parseia e versiona o resultado em src/data/empresas.json (rode com
+ * `npx tsx scripts/generate-empresas.ts` quando a CVM publicar o novo DFP).
  */
-export function getBalancos(env: Env): Promise<Balancos> {
-  return cachedValor<Balancos>(env, "cvm:balancos:v1", 24 * 3600, async () => {
-    const res = await fetch(CVM_DFP_URL, { headers: { "User-Agent": "brasil-em-dados/0.1" }, signal: AbortSignal.timeout(30000) });
-    if (!res.ok) throw new Error(`HTTP ${res.status} no DFP da CVM (dados.cvm.gov.br/dados/CIA_ABERTA/DOC/DFP/Dados/)`);
-    const { unzipSync } = await import("fflate");
-    const zip = new Uint8Array(await res.arrayBuffer());
-    const arquivos = unzipSync(zip);
-    const dre = arquivos["dfp_cia_aberta_DRE_con_2025.csv"];
-    if (!dre) throw new Error("CSV da DRE não encontrado no zip da CVM");
-    const txt = new TextDecoder("latin1").decode(dre);
-    const empresas = parseCvmDreCsv(txt, EMPRESAS_CATALOGO);
-    if (empresas.length === 0) throw new Error("Empresas do catálogo não encontradas na DRE");
-    return { empresas, exercicioFonte: "dfp_cia_aberta_2025.zip" };
-  });
+import empresasDados from "../data/empresas.json";
+
+const BALANCOS_DADOS = empresasDados as unknown as Balancos;
+
+export function getBalancos(_env: Env): Promise<Balancos> {
+  return Promise.resolve(BALANCOS_DADOS);
 }
 
 export async function getBalancosSeguro(env: Env): Promise<Balancos | null> {

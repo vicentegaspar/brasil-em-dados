@@ -1,0 +1,61 @@
+{
+  "gerado_em": "2026-10-05T17:32:35.925Z",
+  "fonte": "CVM open data — DFP (dados.cvm.gov.br)",
+  "exercicioFonte": "dfp_cia_aberta_2025.zip",
+  "empresas": [
+    {
+      "ticker": "BBAS3",
+      "cnpj": "00.000.000/0001-91",
+      "nome": "BCO BRASIL S.A.",
+      "ano": 2025,
+      "receita": 319462104000,
+      "lucroLiquido": null,
+      "escala": "MIL"
+    },
+    {
+      "ticker": "ITUB",
+      "cnpj": "60.872.504/0001-23",
+      "nome": "ITAU UNIBANCO HOLDING S.A.",
+      "ano": 2025,
+      "receita": 387118000000,
+      "lucroLiquido": null,
+      "escala": "MIL"
+    },
+    {
+      "ticker": "PETR",
+      "cnpj": "33.000.167/0001-01",
+      "nome": "PETROLEO BRASILEIRO S.A. PETROBRAS",
+      "ano": 2025,
+      "receita": 497549000000,
+      "lucroLiquido": null,
+      "escala": "MIL"
+    },
+    {
+      "ticker": "BBAS3",
+      "cnpj": "00.000.000/0001-91",
+      "nome": "BCO BRASIL S.A.",
+      "ano": 2024,
+      "receita": 273505274000,
+      "lucroLiquido": null,
+      "escala": "MIL"
+    },
+    {
+      "ticker": "ITUB",
+      "cnpj": "60.872.504/0001-23",
+      "nome": "ITAU UNIBANCO HOLDING S.A.",
+      "ano": 2024,
+      "receita": 335328000000,
+      "lucroLiquido": null,
+      "escala": "MIL"
+    },
+    {
+      "ticker": "PETR",
+      "cnpj": "33.000.167/0001-01",
+      "nome": "PETROLEO BRASILEIRO S.A. PETROBRAS",
+      "ano": 2024,
+      "receita": 490829000000,
+      "lucroLiquido": null,
+      "escala": "MIL"
+    }
+  ]
+}
