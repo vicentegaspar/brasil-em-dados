@@ -16,9 +16,15 @@ import {
   EMPRESAS_CATALOGO,
   type BalancoEmpresa,
   type OnsCargaMes,
+  type SidraLinha,
 } from "./parsers";
-import { formatarNumero, formatarPeriodoDiaria, formatarPeriodoMensal } from "./periodos";
-import { ufPorSigla, type Uf } from "./localidades";
+import {
+  formatarNumero,
+  formatarPeriodoDiaria,
+  formatarPeriodoMensal,
+  normalizarPeriodo,
+} from "./periodos";
+import { ufPorSigla, UFS, type Uf } from "./localidades";
 
 const BCB_BASE = "https://api.bcb.gov.br/dados/serie";
 const APISIDRA_BASE = "https://apisidra.ibge.gov.br/values";
@@ -227,6 +233,189 @@ export function getPibBrasil(env: Env): Promise<IndicadorExibicao> {
       }));
     },
   );
+}
+
+// ---------------- Novas séries Brasil (scorecards) ----------------
+
+/** População residente estimada por ano (apisidra 6579, var 9324, N1) — anual. */
+export function getPopulacaoBrasil(env: Env): Promise<IndicadorExibicao> {
+  return comFonte(
+    "ibge-sidra-6579-populacao",
+    "População residente estimada",
+    "habitantes",
+    "anual",
+    "IBGE — Estimativas de população (SIDRA 6579)",
+    "https://sidra.ibge.gov.br/tabela/6579",
+    0,
+    async () => {
+      const linhas = await sidra(env, "sidra:6579:v2", "6579", "9324", "last%205", "n1/1");
+      return observacoesSidra(linhas, "9324", "1", "anual");
+    },
+  );
+}
+
+/** IPCA — acumulado em 12 meses (apisidra 1737, var 2265) — mensal. */
+export function getIpcaAcum12m(env: Env): Promise<IndicadorExibicao> {
+  return comFonte(
+    "ibge-sidra-1737-ipca-12m",
+    "IPCA — acumulado em 12 meses",
+    "%",
+    "mensal",
+    "IBGE — IPCA (SIDRA 1737)",
+    "https://sidra.ibge.gov.br/tabela/1737",
+    2,
+    async () => {
+      const linhas = await sidra(env, "sidra:1737:2265:v2", "1737", "2265", "last%2013", "n1/1");
+      return observacoesSidra(linhas, "2265", "1", "mensal");
+    },
+  );
+}
+
+/**
+ * PIB per capita derivado do IBGE: PIB corrente (5938 var 37, R$) ÷ população
+ * estimada (6579 var 9324, habitantes) para o mesmo ano. Fórmula documentada
+ * na página /scorecards. Indisponível quando os dois anos não casam.
+ */
+export async function getPibPerCapitaBrasil(env: Env): Promise<IndicadorExibicao> {
+  const fonte = "IBGE — derivado: PIB (SIDRA 5938) ÷ população estimada (SIDRA 6579)";
+  const fonteUrl = "https://sidra.ibge.gov.br/tabela/5938";
+  try {
+    const [pib, pop] = await Promise.all([
+      getPibBrasil(env),
+      getPopulacaoBrasil(env),
+    ]);
+    if (pib.indisponivelMotivo || pop.indisponivelMotivo) {
+      return indicadorPendente(
+        "ibge-derivado-pib-per-capita",
+        "PIB per capita (derivado)",
+        `Componente indisponível: ${pib.indisponivelMotivo ?? pop.indisponivelMotivo}`,
+        fonte,
+        fonteUrl,
+      );
+    }
+    const porAnoPib = new Map(pib.serie.map((o) => [o.periodo, o.valor]));
+    const obs: Observacao[] = [];
+    for (const o of pop.serie) {
+      const pibAno = porAnoPib.get(o.periodo);
+      if (pibAno && o.valor > 0) obs.push({ periodo: o.periodo, valor: pibAno / o.valor });
+    }
+    return montarIndicador(
+      "ibge-derivado-pib-per-capita",
+      "PIB per capita (derivado)",
+      "R$",
+      "anual",
+      fonte,
+      fonteUrl,
+      obs,
+      0,
+    );
+  } catch (e) {
+    console.error(`coletor pib-per-capita: ${String(e)}`);
+    return indicadorPendente("ibge-derivado-pib-per-capita", "PIB per capita (derivado)", `Cálculo indisponível (${String(e)}).`, fonte, fonteUrl);
+  }
+}
+
+/** Juros reais ex-ante aproximado: Selic meta − IPCA acumulado 12 meses (p.p.). */
+export async function getJurosReais(env: Env): Promise<IndicadorExibicao> {
+  const fonte = "BCB (SGS 1178) − IBGE (SIDRA 1737) — derivado";
+  const fonteUrl = "https://www3.bcb.gov.br/sgspub/";
+  try {
+    const [selic, ipca] = await Promise.all([getSelicMeta(env), getIpcaAcum12m(env)]);
+    if (selic.indisponivelMotivo || ipca.indisponivelMotivo) {
+      return indicadorPendente(
+        "derivado-juros-reais",
+        "Juros reais (Selic − IPCA 12m)",
+        `Componente indisponível: ${selic.indisponivelMotivo ?? ipca.indisponivelMotivo}`,
+        fonte,
+        fonteUrl,
+      );
+    }
+    const valor = selic.valor - ipca.valor;
+    return {
+      ...montarIndicador(
+        "derivado-juros-reais",
+        "Juros reais (Selic − IPCA 12m)",
+        "p.p.",
+        "diaria",
+        fonte,
+        fonteUrl,
+        [{ periodo: selic.periodo, valor }],
+        2,
+      ),
+      periodoFormatado: `${selic.periodoFormatado} (Selic) vs ${ipca.periodoFormatado} (IPCA)`,
+    };
+  } catch (e) {
+    console.error(`coletor juros-reais: ${String(e)}`);
+    return indicadorPendente("derivado-juros-reais", "Juros reais (Selic − IPCA 12m)", `Cálculo indisponível (${String(e)}).`, fonte, fonteUrl);
+  }
+}
+
+// ---------------- Ranking das UFs (uma consulta por indicador, n3/all) ----------------
+
+export type LinhaRankingUf = {
+  sigla: string;
+  nome: string;
+  codigo: string;
+  pib: number | null;
+  pibParticipacao: number | null;
+  pibPerCapita: number | null;
+  desocupacao: number | null;
+  informalidade: number | null;
+  populacao: number | null;
+  /** Ano de referência do PIB (pode diferir dos demais) */
+  anoPib: string | null;
+  anoPopulacao: string | null;
+  anoDesocupacao: string | null;
+};
+
+export async function getRankingUf(env: Env): Promise<LinhaRankingUf[]> {
+  const [pibL, partL, desocL, informalL, popL] = await Promise.all([
+    cachedJson(env, "sidra:5938:37:all:v2", `${APISIDRA_BASE}/t/5938/v/37/p/last/n3/all`, 24 * 3600).then((j) => parseSidraValues(JSON.stringify(j))),
+    cachedJson(env, "sidra:5938:496:all:v2", `${APISIDRA_BASE}/t/5938/v/496/p/last/n3/all`, 24 * 3600).then((j) => parseSidraValues(JSON.stringify(j))),
+    cachedJson(env, "sidra:4562:4099:all:v2", `${APISIDRA_BASE}/t/4562/v/4099/p/last/n3/all`, 24 * 3600).then((j) => parseSidraValues(JSON.stringify(j))),
+    cachedJson(env, "sidra:4708:12466:all:v2", `${APISIDRA_BASE}/t/4708/v/12466/p/last/n3/all`, 24 * 3600).then((j) => parseSidraValues(JSON.stringify(j))),
+    cachedJson(env, "sidra:6579:9324:all:v2", `${APISIDRA_BASE}/t/6579/v/9324/p/last/n3/all`, 24 * 3600).then((j) => parseSidraValues(JSON.stringify(j))),
+  ]);
+
+  function serieUf(linhas: SidraLinha[], codigo: string): Observacao[] {
+    // variável muda por tabela; extrai por D3C aceitando qualquer D1C
+    const obs: Observacao[] = [];
+    for (const l of linhas) {
+      if (l["D3C"] !== codigo) continue;
+      const valor = Number(l["V"]);
+      if (!Number.isFinite(valor)) continue;
+      obs.push({ periodo: normalizarPeriodo("anual", l["D2C"] ?? ""), valor });
+    }
+    return obs.sort((a, b) => a.periodo.localeCompare(b.periodo));
+  }
+
+  const out: LinhaRankingUf[] = [];
+  for (const uf of UFS) {
+    const cod = uf.codigo;
+    const pibS = serieUf(pibL, cod);
+    const partS = serieUf(partL, cod);
+    const desocS = serieUf(desocL, cod);
+    const informalS = serieUf(informalL, cod);
+    const popS = serieUf(popL, cod);
+    const ultimo = (s: Observacao[]) => (s.length ? s[s.length - 1] : null);
+    const pibU = ultimo(pibS);
+    const popU = ultimo(popS);
+    out.push({
+      sigla: uf.sigla,
+      nome: uf.nome,
+      codigo: cod,
+      pib: pibU ? pibU.valor * 1000 : null, // Mil Reais -> Reais
+      pibParticipacao: ultimo(partS)?.valor ?? null,
+      pibPerCapita: pibU && popU && popU.valor > 0 ? (pibU.valor * 1000) / popU.valor : null,
+      desocupacao: ultimo(desocS)?.valor ?? null,
+      informalidade: ultimo(informalS)?.valor ?? null,
+      populacao: popU?.valor ?? null,
+      anoPib: pibU?.periodo ?? null,
+      anoPopulacao: popU?.periodo ?? null,
+      anoDesocupacao: ultimo(desocS)?.periodo ?? null,
+    });
+  }
+  return out;
 }
 
 // ---------------- UF (drill-down) ----------------

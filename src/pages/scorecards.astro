@@ -1,0 +1,259 @@
+---
+// Scorecards de investimento: como empresas/pessoas avaliam um país/estado.
+// Índices de mercado com definição + fonte explícita; índice composto com
+// fórmula documentada e componentes ligáveis/desligáveis no cliente.
+import { env } from "cloudflare:workers";
+import type { Env } from "../lib/model";
+import {
+  getIpcaAcum12m,
+  getJurosReais,
+  getPibPerCapitaBrasil,
+  getRankingUf,
+} from "../lib/collectors";
+import { getPainelPaises } from "../lib/worldbank";
+import { formatarNumero } from "../lib/periodos";
+import Base from "../layouts/Base.astro";
+
+export const prerender = false;
+
+const E = env as unknown as Env;
+const [pibPc, jurosReais, ipca12, painelWb, ranking] = await Promise.all([
+  getPibPerCapitaBrasil(E),
+  getJurosReais(E),
+  getIpcaAcum12m(E),
+  getPainelPaises(E, ["NY.GDP.MKTP.KD.ZG", "SL.UEM.TOTL.ZS", "FP.CPI.TOTL.ZG", "GC.DOD.TOTL.GD.ZS"]),
+  getRankingUf(E),
+]);
+
+// Dados para o índice composto (JSON embutido; cálculo no cliente, fórmula visível).
+const CRESC = painelWb.porIndicador["NY.GDP.MKTP.KD.ZG"];
+const DESEMP = painelWb.porIndicador["SL.UEM.TOTL.ZS"];
+const INFLAC = painelWb.porIndicador["FP.CPI.TOTL.ZG"];
+const DIVIDA = painelWb.porIndicador["GC.DOD.TOTL.GD.ZS"];
+
+type PaisValores = { iso3: string; nome: string; crescimento: number | null; desemprego: number | null; inflacao: number | null; divida: number | null };
+const PAISES_VALORES: PaisValores[] = (CRESC ? Object.keys(CRESC) : []).map((iso3) => ({
+  iso3,
+  nome: CRESC?.[iso3]?.nome?.split(" — ").slice(-1)[0] ?? iso3,
+  crescimento: CRESC?.[iso3]?.valor ?? null,
+  desemprego: DESEMP?.[iso3]?.valor ?? null,
+  inflacao: INFLAC?.[iso3]?.valor ?? null,
+  divida: DIVIDA?.[iso3]?.valor ?? null,
+}));
+
+const topPib = [...ranking].filter((r) => r.pib != null).sort((a, b) => (b.pib ?? 0) - (a.pib ?? 0)).slice(0, 5);
+const topDesoc = [...ranking].filter((r) => r.desocupacao != null).sort((a, b) => (a.desocupacao ?? 99) - (b.desocupacao ?? 99)).slice(0, 5);
+
+type Kpi = { nome: string; valor: string; unidade: string; periodo: string; fonte: string; fonteUrl: string; descricao: string };
+function kpi(nome: string, valor: string, unidade: string, periodo: string, fonte: string, fonteUrl: string, descricao: string): Kpi {
+  return { nome, valor, unidade, periodo, fonte, fonteUrl, descricao };
+}
+const KPIS = [
+  kpi(
+    "PIB per capita (derivado)",
+    pibPc.indisponivelMotivo ? "—" : `R$ ${pibPc.valorFormatado}`,
+    "",
+    pibPc.periodoFormatado,
+    "IBGE — PIB (SIDRA 5938) ÷ população estimada (SIDRA 6579)",
+    "https://sidra.ibge.gov.br/tabela/5938",
+    "Fórmula: PIB corrente do ano ÷ população estimada do mesmo ano. Indisponível se os anos não casarem.",
+  ),
+  kpi(
+    "Juros reais (Selic − IPCA 12m)",
+    jurosReais.indisponivelMotivo ? "—" : `${jurosReais.valorFormatado} p.p.`,
+    "",
+    jurosReais.periodoFormatado,
+    "BCB SGS 1178 − IBGE SIDRA 1737 (derivado)",
+    "https://www3.bcb.gov.br/sgspub/",
+    "Fórmula: Selic meta (último dia) − IPCA acumulado em 12 meses. Aproximação do retorno real livre de risco.",
+  ),
+  kpi(
+    "Inflação acumulada 12 meses",
+    ipca12.indisponivelMotivo ? "—" : `${ipca12.valorFormatado}%`,
+    "",
+    ipca12.periodoFormatado,
+    "IBGE — IPCA (SIDRA 1737, var 2265)",
+    "https://sidra.ibge.gov.br/tabela/1737",
+    "Índice geral — acumulado 12 meses, última divulgação mensal.",
+  ),
+  kpi(
+    "Crescimento do PIB (último ano, World Bank)",
+    CRESC?.["BRA"] && !CRESC["BRA"].indisponivelMotivo ? `${CRESC["BRA"].valorFormatado}%` : "—",
+    "",
+    CRESC?.["BRA"]?.periodoFormatado ?? "",
+    "World Bank Open Data — NY.GDP.MKTP.KD.ZG (CC-BY 4.0)",
+    "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG",
+    "Variação real anual do PIB (base constante), último ano disponível do Brasil.",
+  ),
+  kpi(
+    "Desemprego (PNAD Contínua, média anual por UF)",
+    ranking.find((r) => r.sigla === "BR")?.desocupacao != null ? "ver ranking" : "—",
+    "",
+    ranking.find((r) => r.sigla === "SP")?.anoDesocupacao ?? "",
+    "IBGE — PNAD Contínua (SIDRA 4562)",
+    "https://sidra.ibge.gov.br/tabela/4562",
+    "Taxa de desocupação média anual — ver ranking completo das UFs abaixo.",
+  ),
+  kpi(
+    "Dívida do governo central (% do PIB)",
+    DIVIDA?.["BRA"] && !DIVIDA["BRA"].indisponivelMotivo ? `${DIVIDA["BRA"].valorFormatado}%` : "—",
+    "",
+    DIVIDA?.["BRA"]?.periodoFormatado ?? "",
+    "World Bank Open Data — GC.DOD.TOTL.GD.ZS (CC-BY 4.0)",
+    "https://data.worldbank.org/indicator/GC.DOD.TOTL.GD.ZS",
+    "Dívida bruta do governo central como % do PIB, último ano disponível.",
+  ),
+];
+---
+
+<Base titulo="Scorecards" paginaAtiva="scorecards" descricao="Scorecards de investimento: índices de mercado e índice composto com fórmula documentada.">
+  <main class="conteiner">
+    <section class="cabecalho">
+      <h1>Scorecards de investimento</h1>
+      <p>
+        Índices que empresas e pessoas usam para avaliar onde investir/viver —
+        cada um com definição, fórmula e fonte. Nada de número opaco: o índice
+        composto é calculado no seu navegador a partir das séries exibidas, e os
+        componentes podem ser ligados/desligados abaixo.
+      </p>
+    </section>
+
+    <div class="kpis" style="margin-bottom:32px">
+      {KPIS.map((k) => (
+        <article class="kpi">
+          <span class="label">{k.nome}</span>
+          <span class="valor">
+            {k.valor}
+            {k.unidade && <span class="unidade">{k.unidade}</span>}
+          </span>
+          {k.valor === "—" ? <span class="indisponivel">{k.periodo || "indisponível — componente da fonte não respondeu"}</span> : <span class="periodo-ref">Referência: {k.periodo}</span>}
+          <span class="meta">
+            {k.descricao} Fonte: <a href={k.fonteUrl}>{k.fonte}</a>
+          </span>
+        </article>
+      ))}
+    </div>
+
+    <section class="card" style="margin-bottom:32px">
+      <h2 class="card-label">Índice composto — "atratividade" (Brasil vs 10 países)</h2>
+      <p style="font-size:14px; color:var(--muted); max-width:75ch; margin-bottom:12px">
+        Fórmula: para cada componente ligado, normalizamos min–max entre os 11 países
+        (score 0 = pior, 100 = melhor). Desemprego, inflação e dívida entram
+        <strong>invertidos</strong> (menor é melhor). O índice final é a média simples
+        dos componentes ligados — <code>atratividade = média(scores ligados)</code>.
+        País com componente ausente fica sem score naquele componente (não é zero).
+        Escolha o eixo positivo/negativo clicando nos componentes:
+      </p>
+      <form id="componentes" style="display:flex; gap:16px; flex-wrap:wrap; margin-bottom:16px">
+        {[
+          ["crescimento", "Crescimento do PIB (+)", true],
+          ["desemprego", "Desemprego (−)", true],
+          ["inflacao", "Inflação (−)", true],
+          ["divida", "Dívida/PIB (−)", false],
+        ].map(([id, label, on]) => (
+          <label style="font-size:14px">
+            <input type="checkbox" data-comp={id} checked={on} /> {label}
+          </label>
+        ))}
+      </form>
+      <div class="tabela-wrap">
+        <table class="tabela" id="tabela-composto">
+          <thead>
+            <tr>
+              <th data-ordenavel="false">País</th>
+              <th class="num">Índice (0–100)</th>
+              <th data-ordenavel="false" class="num">Cresc. PIB %</th>
+              <th data-ordenavel="false" class="num">Desemprego %</th>
+              <th data-ordenavel="false" class="num">Inflação %</th>
+              <th data-ordenavel="false" class="num">Dívida % PIB</th>
+            </tr>
+          </thead>
+          <tbody id="corpo-composto"></tbody>
+        </table>
+      </div>
+      <p class="fonte-ref" style="margin-top:8px">
+        Valores = último ano disponível de cada série do World Bank (anos podem diferir entre países e séries; exibidos ao passar o mouse na tabela de comparação em /paises).
+      </p>
+    </section>
+
+    <section class="card" style="margin-bottom:32px">
+      <h2 class="card-label">Top 5 — UFs por PIB e menor desocupação</h2>
+      <div class="grid">
+        <div>
+          <h3 style="font-size:14px; color:var(--muted); margin-bottom:8px">Maior PIB (R$ bi)</h3>
+          {topPib.map((r, i) => (
+            <p class="linha-score">
+              <span>{i + 1}. <a href={`/estado/${r.sigla}`}>{r.sigla}</a> — {r.nome}</span>
+              <span class="valor-dado">R$ {formatarNumero((r.pib ?? 0) / 1e9, 1)} bi <span class="periodo-ref">({r.anoPib})</span></span>
+            </p>
+          ))}
+        </div>
+        <div>
+          <h3 style="font-size:14px; color:var(--muted); margin-bottom:8px">Menor desocupação (%)</h3>
+          {topDesoc.map((r, i) => (
+            <p class="linha-score">
+              <span>{i + 1}. <a href={`/estado/${r.sigla}`}>{r.sigla}</a> — {r.nome}</span>
+              <span class="valor-dado">{formatarNumero(r.desocupacao ?? 0, 1)}% <span class="periodo-ref">({r.anoDesocupacao})</span></span>
+            </p>
+          ))}
+        </div>
+      </div>
+      <p class="fonte-ref" style="margin-top:12px">Fonte: IBGE SIDRA — ranking completo em <a href="/estados">/estados</a>.</p>
+    </section>
+  </main>
+
+  <style is:global>
+    .linha-score {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      margin: 0 0 8px;
+      font-size: 14px;
+      font-variant-numeric: tabular-nums;
+    }
+  </style>
+
+  <script define:vars={{ PAISES_VALORES }}>
+    // Índice composto calculado no cliente com fórmula exibida na página.
+    function normalizar(v, min, max, invertido) {
+      if (v == null || min == null || max == null || max === min) return null;
+      const base = (v - min) / (max - min);
+      const s = base * 100;
+      return invertido ? 100 - s : s;
+    }
+    function calcular() {
+      const ativos = [...document.querySelectorAll("#componentes input")].filter((c) => c.checked).map((c) => c.dataset.comp);
+      const linhas = [];
+      for (const p of PAISES_VALORES) {
+        const scores = [];
+        for (const comp of ativos) {
+          const v = p[comp];
+          const invertido = comp !== "crescimento";
+          const valores = PAISES_VALORES.map((x) => x[comp]).filter((x) => x != null);
+          if (valores.length === 0 || v == null) continue;
+          const s = normalizar(v, Math.min(...valores), Math.max(...valores), invertido);
+          if (s != null) scores.push(s);
+        }
+        const indice = scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : null;
+        linhas.push({ ...p, indice, nComponentes: scores.length });
+      }
+      linhas.sort((a, b) => (b.indice ?? -1) - (a.indice ?? -1));
+      const corpo = document.getElementById("corpo-composto");
+      corpo.innerHTML = "";
+      for (const l of linhas) {
+        const tr = document.createElement("tr");
+        const fmt = (v) => (v == null ? "—" : v.toLocaleString("pt-BR", { maximumFractionDigits: 2 }));
+        tr.setAttribute("style", (l.iso3 === "BRA" ? "background: rgba(0,180,120,0.06)" : ""));
+        tr.innerHTML = `<td><strong>${l.nome}</strong>${l.iso3 === "BRA" ? ' <span class="badge verde">Brasil</span>' : ""}</td>
+          <td class="num">${l.indice == null ? '<span class="indisponivel">sem componentes disponíveis</span>' : `<strong>${l.indice.toFixed(1)}</strong>`}</td>
+          <td class="num">${fmt(l.crescimento)}</td>
+          <td class="num">${fmt(l.desemprego)}</td>
+          <td class="num">${fmt(l.inflacao)}</td>
+          <td class="num">${fmt(l.divida)}</td>`;
+        corpo.appendChild(tr);
+      }
+    }
+    document.querySelectorAll("#componentes input").forEach((c) => c.addEventListener("change", calcular));
+    calcular();
+  </script>
+</Base>

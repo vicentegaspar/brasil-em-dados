@@ -1,0 +1,121 @@
+---
+// Estados: ranking das 27 UFs com PIB, PIB per capita (derivado), desocupação,
+// informalidade e população — tabela ordenável no cliente (sem framework JS).
+// Fontes: IBGE SIDRA (apisidra), uma consulta por indicador (n3/all).
+import { env } from "cloudflare:workers";
+import type { Env } from "../lib/model";
+import { getRankingUf, type LinhaRankingUf } from "../lib/collectors";
+import { formatarNumero } from "../lib/periodos";
+import Base from "../layouts/Base.astro";
+
+export const prerender = false;
+
+const E = env as unknown as Env;
+let linhas: LinhaRankingUf[] = [];
+let erro: string | null = null;
+try {
+  linhas = await getRankingUf(E);
+  if (linhas.length === 0) erro = "IBGE (apisidra) não retornou dados para nenhuma UF agora.";
+} catch (e) {
+  console.error(String(e));
+  erro = `Fonte indisponível (${String(e)}) — ranking exibido sem números (nada inventado).`;
+}
+
+const anosPib = [...new Set(linhas.map((l) => l.anoPib).filter(Boolean))];
+const anosPop = [...new Set(linhas.map((l) => l.anoPopulacao).filter(Boolean))];
+const anosDesoc = [...new Set(linhas.map((l) => l.anoDesocupacao).filter(Boolean))];
+---
+
+<Base titulo="Estados" paginaAtiva="estados" descricao="Ranking das 27 UFs: PIB, PIB per capita derivado, desocupação, informalidade e população — IBGE SIDRA.">
+  <main class="conteiner">
+    <section class="cabecalho">
+      <h1>Estados</h1>
+      <p>
+        Ranking das 27 Unidades da Federação. Fonte: <a href="https://apisidra.ibge.gov.br/">IBGE apisidra</a> —
+        PIB corrente (SIDRA 5938 var 37), participação no PIB (var 496), desocupação média anual
+        (PNAD Contínua, SIDRA 4562), informalidade (SIDRA 4708) e população estimada (SIDRA 6579).
+        Clique nos cabeçalhos para ordenar. PIB per capita é derivado: PIB ÷ população do mesmo ano
+        (quando os anos casam).
+      </p>
+    </section>
+
+    {erro && <div class="aviso">{erro}</div>}
+
+    <p class="fonte-ref" style="margin-bottom:12px">
+      Referências por coluna: PIB {anosPib.join(", ") || "—"} · População {anosPop.join(", ") || "—"} ·
+      Desocupação {anosDesoc.join(", ") || "—"} (média anual da PNAD Contínua) · Coletado em {new Date().toISOString().slice(0, 10)}
+    </p>
+
+    {linhas.length > 0 && (
+      <div class="tabela-wrap" id="ranking">
+        <table class="tabela" id="tabela-ufs">
+          <thead>
+            <tr>
+              <th data-ordenavel="false">UF</th>
+              <th data-ordenavel="false">Estado</th>
+              <th data-ordenavel="true" data-col="pib" class="num" title="PIB corrente, R$ bilhões">PIB (R$ bi)</th>
+              <th data-ordenavel="true" data-col="pibParticipacao" class="num" title="Participação no PIB do Brasil, %">% do PIB</th>
+              <th data-ordenavel="true" data-col="pibPerCapita" class="num" title="PIB corrente ÷ população estimada, R$">PIB per capita (R$)</th>
+              <th data-ordenavel="true" data-col="desocupacao" class="num" title="Taxa de desocupação média anual, %">Desoc. (%)</th>
+              <th data-ordenavel="true" data-col="informalidade" class="num" title="Taxa de informalidade, %">Inform. (%)</th>
+              <th data-ordenavel="true" data-col="populacao" class="num" title="População residente estimada, habitantes">População</th>
+            </tr>
+          </thead>
+          <tbody>
+            {linhas.map((l) => (
+              <tr>
+                <td><a href={`/estado/${l.sigla}`}><strong>{l.sigla}</strong></a></td>
+                <td>{l.nome}</td>
+                <td class="num">{l.pib != null ? formatarNumero(l.pib / 1e9, 1) : "—"}</td>
+                <td class="num">{l.pibParticipacao != null ? formatarNumero(l.pibParticipacao, 2) : "—"}</td>
+                <td class="num">{l.pibPerCapita != null ? formatarNumero(l.pibPerCapita, 0) : "—"}</td>
+                <td class="num">{l.desocupacao != null ? formatarNumero(l.desocupacao, 1) : "—"}</td>
+                <td class="num">{l.informalidade != null ? formatarNumero(l.informalidade, 1) : "—"}</td>
+                <td class="num">{l.populacao != null ? formatarNumero(l.populacao, 0) : "—"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )}
+
+    <section class="card" style="margin-top:24px">
+      <h2 class="card-label">Metodologia</h2>
+      <p style="font-size:14px; color:var(--muted); margin:0">
+        Dados anuais mais recentes por série — os anos podem diferir entre PIB e população
+        (referências exibidas acima). Quando o ano do PIB e da população não casam, o PIB
+        per capita é marcado como indisponível em vez de dividir por anos diferentes.
+        UF sem valor na fonte aparece como "—" (nunca zero). Detalhe por UF em
+        <a href="/estado/SP">/estado/&lt;sigla&gt;</a>.
+      </p>
+    </section>
+  </main>
+
+  <script>
+    // Ordenação da tabela de UFs — vanilla, sem dependências.
+    function ordenar(col: string, dir: number) {
+      const tabela = document.getElementById("tabela-ufs") as HTMLTableElement;
+      if (!tabela) return;
+      const corpo = tabela.tBodies[0];
+      const indice = [...tabela.tHead!.rows[0].cells].findIndex((c) => c.dataset.col === col);
+      const linhasArr = [...corpo.rows];
+      linhasArr.sort((a, b) => {
+        const av = a.cells[indice].textContent!.trim();
+        const bv = b.cells[indice].textContent!.trim();
+        const an = av === "—" ? -Infinity : Number(av.replace(/\./g, "").replace(",", "."));
+        const bn = bv === "—" ? -Infinity : Number(bv.replace(/\./g, "").replace(",", "."));
+        return (Number.isNaN(an) || Number.isNaN(bn) ? av.localeCompare(bv) : an - bn) * dir;
+      });
+      for (const l of linhasArr) corpo.appendChild(l);
+    }
+    document.querySelectorAll<HTMLTableCellElement>('#tabela-ufs th[data-ordenavel="true"]').forEach((th, i) => {
+      let dir = -1; // primeira ordenação: maior para menor
+      th.addEventListener("click", () => {
+        dir = -dir;
+        ordenar(th.dataset.col!, dir);
+        document.querySelectorAll<HTMLTableCellElement>("#tabela-ufs th").forEach((o) => (o.textContent = o.textContent!.replace(/ [▲▼]$/, "")));
+        th.textContent = `${th.textContent} ${dir === -1 ? "▼" : "▲"}`;
+      });
+    });
+  </script>
+</Base>
