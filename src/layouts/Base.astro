@@ -1,0 +1,60 @@
+---
+// Layout base: nav fixa com marca tipográfica, footer com fontes e MIT.
+// Importa os design tokens de src/styles/global.css (única fonte de estilo).
+import "../../styles/global.css";
+
+type Props = {
+  titulo: string;
+  descricao?: string;
+  paginaAtiva?: "inicio" | "graficos" | "paises" | "estados" | "empresas" | "scorecards" | "api";
+};
+
+const { titulo, descricao = "Painel público de estatísticas do Brasil — dados oficiais do IBGE, BCB, ONS, CVM e World Bank, sempre com fonte, período de referência e data de coleta.", paginaAtiva = "" } = Astro.props;
+
+const LINKS = [
+  ["inicio", "/", "Início"],
+  ["graficos", "/graficos", "Gráficos"],
+  ["paises", "/paises", "Países"],
+  ["estados", "/estados", "Estados"],
+  ["empresas", "/empresas", "Empresas"],
+  ["scorecards", "/scorecards", "Scorecards"],
+  ["api", "/api/v1/indicadores", "API"],
+] as const;
+---
+
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={descricao} />
+    <title>{titulo} — Brasil em Dados</title>
+  </head>
+  <body>
+    <header class="nav">
+      <div class="nav-inner">
+        <a class="logo" href="/">BR<span class="ponto">∙</span>dados</a>
+        <nav class="nav-links" aria-label="principal">
+          {LINKS.map(([id, href, nome]) => (
+            <a href={href} class={paginaAtiva === id ? "ativo" : ""}>{nome}</a>
+          ))}
+        </nav>
+      </div>
+    </header>
+    <slot />
+    <footer class="rodape">
+      <div class="conteiner">
+        <p>
+          Fontes: <a href="https://servicodados.ibge.gov.br/api/docs/">IBGE (SIDRA)</a> ·
+          <a href="https://api.bcb.gov.br/">BCB (SGS)</a> ·
+          <a href="https://dados.ons.org.br/">ONS (CC-BY)</a> ·
+          <a href="https://dados.cvm.gov.br/">CVM (open data)</a> ·
+          <a href="https://api.worldbank.org/">World Bank Open Data</a>.
+          Código: <a href="https://github.com/vicentegaspar/brasil-em-dados">open source, MIT</a>.
+          Consultas cacheadas em KV — o site não sobrecarrega as fontes públicas.
+          Cada indicador exibe fonte, período de referência e data de coleta; fonte fora do ar nunca é zero.
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,4 +1,5 @@
 ---
+// Home: 4+ KPIs principais em linha, cards com fonte/referência, hero enxuto.
 import type { Env, IndicadorExibicao } from "../lib/model";
 import {
   getCambio,
@@ -10,6 +11,9 @@ import {
   getSelicMeta,
 } from "../lib/collectors";
 import { env } from "cloudflare:workers";
+import Base from "../layouts/Base.astro";
+
+export const prerender = false;
 
 const E = env as unknown as Env;
 
@@ -19,31 +23,25 @@ type Card = {
   unidade: string;
   variacaoPct: number | null;
   periodo: string;
-  serie: { valor: number }[];
   fonte: string;
+  fonteUrl: string;
+  serie: { valor: number }[];
+  disponivel: boolean;
+  motivo: string;
 };
 
 function paraCard(ind: IndicadorExibicao): Card {
   return {
     nome: ind.nome,
-    valor: ind.valorFormatado || "—",
+    valor: ind.valorFormatado,
     unidade: ind.unidade,
     variacaoPct: ind.variacaoPct,
     periodo: ind.periodoFormatado,
-    serie: ind.serie.map((o) => ({ valor: o.valor })),
     fonte: ind.fonte,
-  };
-}
-
-function cardPendente(nome: string, motivo: string): Card {
-  return {
-    nome,
-    valor: "indisponível",
-    unidade: "",
-    variacaoPct: null,
-    periodo: motivo,
-    serie: [],
-    fonte: "",
+    fonteUrl: ind.fonteUrl,
+    serie: ind.serie.map((o) => ({ valor: o.valor })),
+    disponivel: !ind.indisponivelMotivo,
+    motivo: ind.indisponivelMotivo ?? "",
   };
 }
 
@@ -60,14 +58,10 @@ try {
     getCargaEnergia(E),
   ]);
   for (const ind of [selic, cambio, ipca, desoc, informal, pib, carga.total]) {
-    if (ind.indisponivelMotivo) {
-      cards.push(cardPendente(ind.nome, ind.indisponivelMotivo));
-      erros.push(ind.indisponivelMotivo);
-    } else {
-      cards.push(paraCard(ind));
-    }
+    if (ind.indisponivelMotivo) erros.push(ind.indisponivelMotivo);
+    cards.push(paraCard(ind));
   }
-  if (cards.every((c) => c.valor === "indisponível" || c.valor === "—")) {
+  if (cards.every((c) => !c.disponivel)) {
     erros = ["Nenhum indicador pôde ser coletado agora. Tente novamente em instantes."];
   }
 } catch (e) {
@@ -90,145 +84,82 @@ function sparkline(pontos: { valor: number }[]): string {
   });
   const line = `M${coords.join(" L")}`;
   const area = `${line} L${w},${h} L0,${h} Z`;
-  return `<svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" aria-hidden="true">
-    <path d="${area}" fill="rgba(0,180,120,0.12)"/>
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" preserveAspectRatio="none" aria-hidden="true">
+    <path d="${area}" fill="rgba(0,180,120,0.10)"/>
     <path d="${line}" fill="none" stroke="#00b478" stroke-width="2" stroke-linejoin="round"/>
   </svg>`;
 }
 ---
-<!doctype html>
-<html lang="pt-BR">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Painel público de estatísticas do Brasil: juros, câmbio, inflação, emprego, PIB e energia. Dados oficiais do IBGE, BCB e ONS, com fonte, referência e data de coleta." />
-    <title>Brasil em Dados — estatísticas do Brasil</title>
-    <style is:global>
-      :root {
-        --bg: #0d1117;
-        --panel: #161b22;
-        --border: #2d333b;
-        --text: #e6edf3;
-        --muted: #8b949e;
-        --accent: #00b478;
-        --accent-dim: #0a5c40;
-      }
-      * { box-sizing: border-box; }
-      body {
-        margin: 0;
-        background: var(--bg);
-        color: var(--text);
-        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-        line-height: 1.5;
-      }
-      header {
-        padding: 2.5rem 1.5rem 1rem;
-        max-width: 960px;
-        margin: 0 auto;
-      }
-      header h1 { font-size: 2rem; margin: 0 0 .5rem; }
-      header p { color: var(--muted); margin: 0; max-width: 60ch; }
-      nav { max-width: 960px; margin: 0 auto; padding: 0 1.5rem; display: flex; gap: 1rem; }
-      nav a { color: var(--accent); text-decoration: none; font-size: .9rem; }
-      main {
-        max-width: 960px;
-        margin: 0 auto;
-        padding: 1.5rem;
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 1rem;
-      }
-      .card {
-        background: var(--panel);
-        border: 1px solid var(--border);
-        border-radius: 10px;
-        padding: 1.25rem;
-      }
-      .card h2 {
-        font-size: .85rem;
-        font-weight: 500;
-        color: var(--muted);
-        text-transform: uppercase;
-        letter-spacing: .06em;
-        margin: 0 0 .75rem;
-      }
-      .valor { font-size: 2rem; font-weight: 700; font-variant-numeric: tabular-nums; }
-      .unidade { color: var(--muted); font-size: .9rem; margin-left: .4rem; }
-      .delta { font-size: .85rem; margin-top: .35rem; }
-      .up { color: var(--accent); }
-      .down { color: #f85149; }
-      .periodo { color: var(--muted); font-size: .8rem; }
-      .spark { margin-top: .75rem; }
-      .fonte { color: var(--muted); font-size: .75rem; margin-top: .75rem; }
-      .indisponivel { color: #d29922; font-size: .8rem; }
-      .erro {
-        grid-column: 1 / -1;
-        border-color: #f85149;
-        color: #ffa198;
-        padding: 1rem;
-        background: var(--panel);
-        border: 1px solid #f85149;
-        border-radius: 10px;
-      }
-      footer {
-        max-width: 960px;
-        margin: 0 auto;
-        padding: 1rem 1.5rem 2.5rem;
-        color: var(--muted);
-        font-size: .85rem;
-      }
-      footer a, header a { color: var(--accent); text-decoration: none; }
-    </style>
-  </head>
-  <body>
-    <header>
-      <h1>🇧🇷 Brasil em Dados</h1>
-      <p>
-        Estatísticas do Brasil direto das fontes oficiais — juros, câmbio, inflação,
-        emprego, PIB e energia — sempre com fonte, período de referência e data de coleta.
-      </p>
-    </header>
-    <nav>
-      <a href="/">Painel</a>
-      <a href="/empresas">Empresas</a>
-      <a href="/estado/SP">Estados (ex.: São Paulo)</a>
-      <a href="/api/v1/indicadores">API v1</a>
-    </nav>
 
-    <main>
-      {erros.length > 0 && cards.length === 0 && <div class="erro">{erros.join(" ")}</div>}
+<Base titulo="Estatísticas do Brasil" paginaAtiva="inicio" descricao="Painel público de estatísticas do Brasil: juros, câmbio, inflação, emprego, PIB, energia, empresas e comparação internacional — dados oficiais do IBGE, BCB, ONS, CVM e World Bank, com fonte, referência e data de coleta.">
+  <main class="conteiner">
+    <section class="cabecalho">
+      <h1 style="font-size:40px">Brasil em dados, com a fonte na mão</h1>
+      <p>
+        Juros, câmbio, inflação, emprego, PIB e energia — direto das fontes oficiais
+        (IBGE, BCB, ONS, CVM, World Bank). Todo número vem com fonte, período de
+        referência e data de coleta; fonte fora do ar nunca vira zero.
+      </p>
+    </section>
+
+    {erros.length > 0 && cards.every((c) => !c.disponivel) && (
+      <div class="aviso">{erros.join(" ")}</div>
+    )}
+
+    <div class="kpis" style="margin-bottom:32px">
       {cards.map((c) => (
-        <article class="card">
-          <h2>{c.nome}</h2>
-          {c.valor !== "indisponível" ? (
-            <div>
-              <span class="valor">{c.valor}</span>
-              <span class="unidade">{c.unidade}</span>
-            </div>
+        <article class="kpi">
+          <span class="label">{c.nome}</span>
+          {c.disponivel ? (
+            <>
+              <span class="valor">
+                {c.valor}
+                <span class="unidade">{c.unidade}</span>
+              </span>
+              {c.variacaoPct != null && (
+                <span class={`delta ${c.variacaoPct >= 0 ? "up" : "down"}`}>
+                  {c.variacaoPct >= 0 ? "▲" : "▼"} {Math.abs(c.variacaoPct).toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%
+                </span>
+              )}
+              <div set:html={sparkline(c.serie)} />
+              <span class="meta">
+                Referência: {c.periodo} · Fonte: <a href={c.fonteUrl}>{c.fonte}</a>
+              </span>
+            </>
           ) : (
-            <div><span class="indisponivel">Indisponível — {c.periodo}</span></div>
+            <span class="indisponivel">Indisponível — {c.motivo}</span>
           )}
-          {c.variacaoPct != null && (
-            <p class={`delta ${c.variacaoPct >= 0 ? "up" : "down"}`}>
-              {c.variacaoPct >= 0 ? "▲" : "▼"} {Math.abs(c.variacaoPct).toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%
-            </p>
-          )}
-          <p class="periodo">Referência: {c.periodo}</p>
-          <div class="spark" set:html={sparkline(c.serie)} />
-          <p class="fonte">Fonte: {c.fonte}</p>
         </article>
       ))}
-    </main>
+    </div>
 
-    <footer>
-      <p>
-        Dados: <a href="https://servicodados.ibge.gov.br/api/docs/">IBGE (SIDRA)</a> ·
-        <a href="https://api.bcb.gov.br/">BCB (SGS)</a> ·
-        <a href="https://dados.ons.org.br/">ONS (dados abertos, CC-BY)</a> ·
-        <a href="https://dados.cvm.gov.br/">CVM (open data)</a> ·
-        Código: <a href="https://github.com/vicentegaspar/brasil-em-dados">open source, MIT</a> ·
-        Consultas são cacheadas em KV — este site não sobrecarrega as fontes públicas.
-      </p>
-    </footer>
-  </body>
-</html>
+    <section class="grid">
+      <article class="card">
+        <h2 class="card-label">Explorar</h2>
+        <p style="font-size:14px; margin:0 0 8px">
+          <a href="/graficos">Gráficos</a> — compare séries no tempo (ex.: IPCA Brasil x EUA x Japão; Selic e câmbio com filtro de período).
+        </p>
+        <p style="font-size:14px; margin:0 0 8px">
+          <a href="/paises">Países</a> — Brasil x EUA x Japão (+ 8 países) em 6 indicadores de mercado (World Bank).
+        </p>
+        <p style="font-size:14px; margin:0 0 8px">
+          <a href="/estados">Estados</a> — ranking das 27 UFs por PIB, desocupação, informalidade e população (IBGE).
+        </p>
+        <p style="font-size:14px; margin:0">
+          <a href="/empresas">Empresas</a> — balanços de listadas via CVM open data.
+        </p>
+      </article>
+      <article class="card">
+        <h2 class="card-label">Scorecards</h2>
+        <p style="font-size:14px; margin:0 0 8px">
+          <a href="/scorecards">Índices de mercado</a> com definição e fonte explícitas: PIB per
+          capita derivado (SIDRA), juros reais (Selic − IPCA 12m) e índice composto de
+          "atratividade" com fórmula visível e componentes ligáveis/desligáveis.
+        </p>
+        <p style="font-size:14px; margin:0">
+          <a href="/api/v1/indicadores">API v1</a> — séries em JSON/CSV, sem chave, para reuso.
+        </p>
+      </article>
+    </section>
+  </main>
+</Base>

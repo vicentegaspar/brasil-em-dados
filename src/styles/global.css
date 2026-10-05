@@ -1,0 +1,365 @@
+// Design tokens — Brasil em Dados
+// Fundo profundo, superfícies com borda, acento verde apenas para dados
+// positivos/CTA; azul e amarelo para séries neutras. Sem gradientes
+// decorativos, sem glassmorphism, contraste AA em todo texto.
+
+:root {
+  /* superfícies */
+  --bg: #0b0f14;
+  --surface: #11161d;
+  --border: #1f2733;
+  --radius: 12px;
+
+  /* texto */
+  --text: #e6edf3;
+  --muted: #93a1b0;
+  --faint: #6e7d8d;
+
+  /* acentos */
+  --pos: #00b478; /* verde — dados positivos / CTA */
+  --neg: #f56a5e; /* vermelho — dados negativos */
+  --neutro: #4c8dff; /* azul — séries neutras */
+  --amarelo: #f5b83d; /* amarelo — séries neutras */
+
+  /* licenças */
+  --lic-verde: #00b478;
+  --lic-amarelo: #f5b83d;
+  --lic-vermelho: #f56a5e;
+
+  /* tipografia */
+  --fonte: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  /* espaçamento (4/8/12/16/24/32) */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 24px;
+  --s6: 32px;
+
+  /* sombra sutil */
+  --sombra: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--fonte);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+a {
+  color: var(--neutro);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.2;
+  margin: 0;
+}
+
+code {
+  font-family: ui-monospace, "SF Mono", Consolas, monospace;
+  font-size: 0.85em;
+}
+
+/* ---------- contêiner ---------- */
+.conteiner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 var(--s4);
+}
+
+/* ---------- nav fixa ---------- */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(11, 15, 20, 0.92);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(6px);
+}
+.nav-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 var(--s4);
+  height: 56px;
+  display: flex;
+  align-items: center;
+  gap: var(--s5);
+  overflow-x: auto;
+  white-space: nowrap;
+}
+.logo {
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.02em;
+  color: var(--text);
+}
+.logo:hover {
+  text-decoration: none;
+}
+.logo .ponto {
+  color: var(--pos);
+}
+.nav-links {
+  display: flex;
+  gap: var(--s4);
+  align-items: center;
+}
+.nav-links a {
+  color: var(--muted);
+  font-size: 14px;
+  padding: var(--s1) 0;
+  border-bottom: 2px solid transparent;
+}
+.nav-links a:hover {
+  color: var(--text);
+  text-decoration: none;
+}
+.nav-links a.ativo {
+  color: var(--text);
+  border-bottom-color: var(--pos);
+}
+
+/* ---------- cabeçalho de página ---------- */
+.cabecalho {
+  padding: var(--s6) 0 var(--s5);
+}
+.cabecalho h1 {
+  font-size: 28px;
+  margin-bottom: var(--s2);
+}
+.cabecalho p {
+  color: var(--muted);
+  font-size: 14px;
+  max-width: 70ch;
+  margin: 0;
+}
+
+/* ---------- hero / KPIs ---------- */
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--s4);
+}
+.kpi {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--sombra);
+  padding: var(--s4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+.kpi .label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+.kpi .valor {
+  font-size: 28px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.kpi .valor .unidade {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+  margin-left: var(--s1);
+}
+.kpi .delta {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.kpi .meta {
+  font-size: 11px;
+  color: var(--faint);
+}
+.kpi .meta a {
+  color: var(--faint);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ---------- cards genéricos ---------- */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--sombra);
+  padding: var(--s4);
+}
+.card .card-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin: 0 0 var(--s3);
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--s4);
+}
+
+/* ---------- tabelas ---------- */
+.tabela-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--sombra);
+}
+table.tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+table.tabela th {
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+  text-align: left;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-weight: 600;
+  padding: var(--s3) var(--s4);
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  user-select: none;
+}
+table.tabela th[data-ordenavel="false"] {
+  cursor: default;
+}
+table.tabela td {
+  padding: var(--s2) var(--s4);
+  border-bottom: 1px solid rgba(31, 39, 51, 0.6);
+}
+table.tabela tbody tr:nth-child(odd) {
+  background: rgba(255, 255, 255, 0.015); /* zebra sutil */
+}
+table.tabela tbody tr:last-child td {
+  border-bottom: none;
+}
+table.tabela .num {
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* ---------- badges / chips ---------- */
+.badge {
+  display: inline-block;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+.badge.verde {
+  color: var(--lic-verde);
+  border-color: rgba(0, 180, 120, 0.4);
+}
+.badge.amarelo {
+  color: var(--lic-amarelo);
+  border-color: rgba(245, 184, 61, 0.4);
+}
+.badge.vermelho {
+  color: var(--lic-vermelho);
+  border-color: rgba(245, 106, 94, 0.4);
+}
+
+/* ---------- estados de dados ---------- */
+.up {
+  color: var(--pos);
+}
+.down {
+  color: var(--neg);
+}
+.indisponivel {
+  color: var(--lic-amarelo);
+  font-size: 13px;
+}
+.aviso {
+  border: 1px solid rgba(245, 184, 61, 0.4);
+  background: rgba(245, 184, 61, 0.06);
+  color: var(--lic-amarelo);
+  border-radius: var(--radius);
+  padding: var(--s3) var(--s4);
+  font-size: 14px;
+  margin-bottom: var(--s4);
+}
+.fonte-ref {
+  font-size: 11px;
+  color: var(--faint);
+}
+.periodo-ref {
+  font-size: 12px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- footer ---------- */
+.rodape {
+  border-top: 1px solid var(--border);
+  margin-top: var(--s6);
+  padding: var(--s5) 0 var(--s6);
+  color: var(--faint);
+  font-size: 13px;
+}
+.rodape a {
+  color: var(--muted);
+}
+
+/* ---------- números ---------- */
+.valor-dado {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- responsivo ---------- */
+@media (max-width: 640px) {
+  .kpis,
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  .cabecalho h1 {
+    font-size: 24px;
+  }
+  .kpi .valor {
+    font-size: 24px;
+  }
+}
+
+/* ---------- acessibilidade ---------- */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--neutro);
+  outline-offset: 2px;
+}
