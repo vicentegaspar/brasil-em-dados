@@ -1,7 +1,7 @@
 ---
 // Estado: drill-down Brasil -> UF (N3) com PIB, participação, desocupação e informalidade.
 import type { Env } from "../../lib/model";
-import { getIndicadoresUf } from "../../lib/collectors";
+import { getIndicadoresUf } from "../../lib/coletores/sidra";
 import { UFS } from "../../lib/localidades";
 import { env } from "cloudflare:workers";
 import Base from "../../layouts/Base.astro";

@@ -2,19 +2,16 @@
 // Empresas listadas: DRE consolidada (receita e lucro) do DFP da CVM, dados
 // de build (src/data/empresas.json). Compara os dois últimos exercícios
 // disponíveis por empresa. Valores em R$ bilhões.
-import type { Env } from "../lib/model";
-import { getBalancosSeguro, type Balancos } from "../lib/collectors";
+import { getBalancosSeguro, type Balancos } from "../lib/coletores/cvm";
 import { formatarBilhoes, formatarNumero } from "../lib/periodos";
 import Base from "../layouts/Base.astro";
-import { env } from "cloudflare:workers";
 
 export const prerender = false;
 
-const E = env as unknown as Env;
 let balancos: Balancos | null = null;
 let erro: string | null = null;
 try {
-  balancos = await getBalancosSeguro(E);
+  balancos = await getBalancosSeguro();
   if (!balancos) erro = "Não foi possível carregar os balanços da CVM agora.";
 } catch (e) {
   console.error(String(e));

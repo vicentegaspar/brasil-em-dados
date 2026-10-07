@@ -1,13 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { getCambio, getIpcaMensal, getSelicMeta } from "../src/lib/coletores/bcb";
 import {
-  getCambio,
-  getCargaEnergia,
   getDesocupacaoBrasil,
   getInformalidadeBrasil,
-  getIpcaMensal,
-  getSelicMeta,
   getIndicadoresUf,
-} from "../src/lib/collectors";
+} from "../src/lib/coletores/sidra";
+import { getCargaEnergia } from "../src/lib/coletores/ons";
 import { buscarJson } from "../src/lib/cache";
 import { fixture, fetchStub, kvMock, kvQuebrado } from "./helpers";
 import type { Env } from "../src/lib/model";

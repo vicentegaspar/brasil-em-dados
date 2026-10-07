@@ -15,7 +15,7 @@ Resposta:
   "licenca_dados": "dados de fontes públicas (IBGE, BCB, ONS) — ver docs/fontes.md",
   "indicadores": [
     {
-      "id": "bcb-sgs-1178-selic-meta",
+      "id": "bcb-selic",
       "nome": "Taxa Selic definida pelo Copom",
       "unidade": "% a.a.",
       "periodicidade": "diaria",
@@ -30,17 +30,23 @@ Resposta:
 }
 ```
 
-Indicadores incluídos (Brasil, N1):
+Indicadores incluídos (Brasil, N1) — do registro único (`src/lib/registro.ts`;
+o mesmo descritor alimenta `/api/v1/serie`, `/api/v1/indicadores`,
+`/api/indicadores.json`, `/graficos` e a home):
 
 | id | nome | periodicidade |
 |---|---|---|
-| `bcb-sgs-1178-selic-meta` | Selic definida pelo Copom | diária |
-| `bcb-sgs-1-cambio` | Dólar PTAX (compra) | diária |
-| `bcb-sgs-433-ipca-mensal` | IPCA — variação mensal | mensal |
-| `ibge-sidra-6381-desocupacao` | Desocupação (PNAD Contínua) | trimestral móvel |
-| `ibge-sidra-4708-informalidade` | Informalidade (PNAD Contínua) | anual |
-| `ibge-sidra-5938-pib` | PIB Brasil a preços correntes | anual |
-| `ons-carga-mensal` | Carga de energia — total dos subsistemas | mensal |
+| `bcb-selic` | Selic definida pelo Copom | diária |
+| `bcb-cambio` | Dólar PTAX (compra) | diária |
+| `bcb-ipca-mensal` | IPCA — variação mensal | mensal |
+| `sidra-desocupacao` | Desocupação (PNAD Contínua) | trimestral móvel |
+| `sidra-informalidade` | Informalidade (PNAD Contínua) | anual |
+| `sidra-pib` | PIB Brasil a preços correntes (R$ bi) | anual |
+| `sidra-populacao` | População residente estimada | anual |
+| `sidra-ipca-12m` | IPCA — acumulado em 12 meses | mensal |
+| `ons-carga` | Carga de energia — total dos subsistemas | mensal |
+| `derivado-pib-per-capita` | PIB per capita (derivado, R$) | anual |
+| `derivado-juros-reais` | Juros reais (Selic − IPCA 12m, p.p.) | diária |
 
 Observações: formato canônico do período — `YYYY` anual, `YYYY-MM` mensal/trimestral móvel, `YYYY-MM-DD` diária. Indicador indisponível aparece com `observacoes: []` e o motivo é registrado no log e na UI.
 
@@ -64,6 +70,7 @@ GET /api/v1/serie?id=wb-FP.CPI.TOTL.ZG-BRA&inicio=2020&fim=2025
 | `bcb-selic` · `bcb-cambio` · `bcb-ipca-mensal` | BCB SGS 1178/1/433 | diária/mensal |
 | `sidra-desocupacao` · `sidra-informalidade` · `sidra-pib` · `sidra-populacao` · `sidra-ipca-12m` | IBGE apisidra | var. |
 | `ons-carga` | ONS (CC-BY) | mensal |
+| `derivado-pib-per-capita` · `derivado-juros-reais` | derivados (ver tabela acima) | anual/diária |
 
 Parâmetros opcionais `inicio`/`fim` filtram por período no formato canônico
 (`2015` para anual, `2015-03` para mensal — comparação lexicográfica).
@@ -87,9 +94,19 @@ Resposta:
 
 `id` desconhecido ou fonte fora do ar → `404` com `erro` e a lista de `ids_validos`.
 
+## GET /api/v1/impostos.json
+
+Dataset estático de referência com as alíquotas básicas de imposto — Brasil
+(IRPF pessoa física, tributos de empresas no lucro real) e EUA (federal income
+tax single filer 2026, corporate tax). Mesmas tabelas da página `/impostos`,
+com fonte, vigência e licença por tabela. Não é série temporal.
+
 ## GET /api/indicadores.json (legado, mantido)
 
-Compatibilidade do F1: população estimada + IPCA 12m (IBGE).
+Servido pelo registro único: mesmos indicadores de `/api/v1/indicadores`, no
+formato antigo do F1 (`valor` como string formatada, `periodo` formatado,
+`serie` de observações) + metadados (`valor_numerico`, `periodo_canonico`,
+`licenca`, `indisponivel`). `erros` lista indicadores indisponíveis no momento.
 
 ## Notas
 

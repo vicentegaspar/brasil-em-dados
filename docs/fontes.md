@@ -8,11 +8,11 @@ Cada fonte primária tem um semáforo de licença e um status de implementação
 
 | Fonte | Dados | Licença | Coletor | Status |
 |---|---|---|---|---|
-| IBGE SIDRA / apisidra | população (6579/9324), IPCA 12m (1737/2265), desocupação (6381, 4562 UF), informalidade (4708), PIB UF/município (5938 var 37/496) | Verde (uso livre com atribuição) | `src/lib/collectors.ts` | ✅ ativo |
-| BCB SGS (`api.bcb.gov.br`) | Selic meta diária (1178), câmbio PTAX compra (1), IPCA mensal (433) | Verde | `src/lib/collectors.ts` | ✅ ativo |
-| ONS — Dados Abertos | Carga mensal de energia por subsistema (`CARGA_MENSAL.csv`, CC-BY) | Verde (CC-BY) | `src/lib/collectors.ts` | ✅ ativo |
+| IBGE SIDRA / apisidra | população (6579/9324), IPCA 12m (1737/2265), desocupação (6381, 4562 UF), informalidade (4708), PIB UF/município (5938 var 37/496) | Verde (uso livre com atribuição) | `src/lib/coletores/` | ✅ ativo |
+| BCB SGS (`api.bcb.gov.br`) | Selic meta diária (1178), câmbio PTAX compra (1), IPCA mensal (433) | Verde | `src/lib/coletores/` | ✅ ativo |
+| ONS — Dados Abertos | Carga mensal de energia por subsistema (`CARGA_MENSAL.csv`, CC-BY) | Verde (CC-BY) | `src/lib/coletores/` | ✅ ativo |
 | World Bank Open Data (API v2) | PIB crescimento real, PIB per capita, desemprego ILO, inflação IPC, população, dívida gov. central — BR/US/JP/AR/MX/CL/DE/CN/IN/KR/PT (2000–2025) | Verde (CC-BY 4.0, atribuição) | `src/lib/worldbank.ts` + `src/lib/parsers-worldbank.ts` | ✅ ativo (comparadores internacionais, `/paises`, `/scorecards`) |
-| CVM — Dados Abertos | DFP zip anual → DRE consolidada (receita, lucro) de 15 listadas (PETR4, VALE3, ITUB4, BBDC4, BBAS3, ABEV3, WEGE3, JBSS3, SUZB3, BRFS3, NTCO3, MGLU3, GGBR4, RENT3, B3SA3) | Verde (open data; redistribuímos apenas números-síntese com citação) | `src/lib/collectors.ts` | ✅ ativo |
+| CVM — Dados Abertos | DFP zip anual → DRE consolidada (receita, lucro) de 15 listadas (PETR4, VALE3, ITUB4, BBDC4, BBAS3, ABEV3, WEGE3, JBSS3, SUZB3, BRFS3, NTCO3, MGLU3, GGBR4, RENT3, B3SA3) | Verde (open data; redistribuímos apenas números-síntese com citação) | `src/lib/coletores/` | ✅ ativo |
 | EPE — Balanço Energético Nacional (BEN) | matriz energética, consumo | Amarelo (reproduzir apenas números-síntese com citação explícita; não re-hospedar o PDF) | — | ⏳ pendente (parser de PDF planejado para rodar fora do Workers, via CI) |
 | ANP — bilhete/semanário de combustíveis | preços de combustíveis | Verde | — | ⏳ pendente |
 | Tesouro — Siconfi (`apidatalake.tesouro.gov.br`) | FINBRA/orçamento municipal | Verde | — | ❌ pendente: API respondeu **404** nos testes (out/2026); monitorar retorno da API |

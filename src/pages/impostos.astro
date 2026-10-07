@@ -1,0 +1,103 @@
+---
+// Impostos: tabelas de alíquotas básicas Brasil × EUA (IRPF/pessoa física e
+// empresas) — dataset estático versionado (src/data/impostos.json) com fonte,
+// vigência e licença por tabela, no mesmo regime de proveniência do resto do
+// site. Renderiza a partir do JSON; nada hardcoded no template.
+import Base from "../layouts/Base.astro";
+import impostosDados from "../data/impostos.json";
+
+type Faixa = {
+  nome?: string;
+  de?: number;
+  ate?: number;
+  aliquota: number;
+  deducao?: number;
+};
+type Tabela = {
+  id: string;
+  pais: string;
+  paisNome: string;
+  titulo: string;
+  moeda: string;
+  vigencia: string;
+  fonte: string;
+  fonte_url: string;
+  licenca: string;
+  notas: string;
+  faixas: Faixa[];
+};
+const dados = impostosDados as unknown as { atualizado_em: string; notas: string; tabelas: Tabela[] };
+const tabelas = dados.tabelas;
+const paises = [...new Set(tabelas.map((t) => t.pais))];
+
+const fmtMoeda = (v: number, moeda: string) =>
+  `${moeda === "US$" ? "US$ " : "R$ "}${v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const fmtPct = (v: number) =>
+  `${v.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`;
+const limites = (f: Faixa, moeda: string) => {
+  if (f.nome) return f.nome;
+  const de = f.de === 0 || f.de ? fmtMoeda(f.de, moeda) : "—";
+  return `${de}${f.ate != null ? ` até ${fmtMoeda(f.ate, moeda)}` : " ou mais"}`;
+};
+---
+
+<Base titulo="Impostos — Brasil × EUA" paginaAtiva="impostos" descricao="Alíquotas básicas de imposto: IRPF e tributos de empresas no Brasil e imposto de renda federal dos EUA — com fonte, vigência e licença.">
+  <main class="conteiner">
+    <section class="cabecalho">
+      <h1>Impostos básicos — Brasil × EUA</h1>
+      <p>
+        Tabelas de referência das alíquotas vigentes (pessoa física e empresas).
+        Dataset estático versionado em <code>src/data/impostos.json</code> — cada
+        tabela carrega fonte, vigência e licença. Não é aconselhamento tributário;
+        confira a fonte oficial antes de qualquer decisão.
+      </p>
+    </section>
+
+    {paises.map((pais) => (
+      <section style="margin-bottom:32px">
+        {tabelas
+          .filter((t) => t.pais === pais)
+          .map((t) => (
+            <article class="card" style="margin-bottom:16px">
+              <h2 class="card-label">
+                {t.paisNome} — {t.titulo} ({t.vigencia})
+              </h2>
+              <div class="tabela-wrap">
+                <table class="tabela">
+                  <thead>
+                    <tr>
+                      <th data-ordenavel="false">Faixa / base</th>
+                      <th data-ordenavel="false" class="num">Alíquota</th>
+                      {t.faixas.some((f) => f.deducao != null) && (
+                        <th data-ordenavel="false" class="num">Parcela a deduzir</th>
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {t.faixas.map((f) => (
+                      <tr>
+                        <td>{limites(f, t.moeda)}</td>
+                        <td class="num">{fmtPct(f.aliquota)}</td>
+                        {t.faixas.some((x) => x.deducao != null) && (
+                          <td class="num">{f.deducao != null ? fmtMoeda(f.deducao, t.moeda) : "—"}</td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p class="fonte-ref" style="margin-top:8px">
+                {t.notas} Fonte: <a href={t.fonte_url}>{t.fonte}</a> · Licença: {t.licenca} ·
+                Vigência: {t.vigencia}.
+              </p>
+            </article>
+          ))}
+      </section>
+    ))}
+
+    <p class="fonte-ref">
+      Mesmas tabelas em JSON: <a href="/api/v1/impostos.json">/api/v1/impostos.json</a>.
+      Dataset atualizado em {dados.atualizado_em}.
+    </p>
+  </main>
+</Base>

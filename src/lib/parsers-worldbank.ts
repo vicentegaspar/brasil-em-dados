@@ -2,6 +2,7 @@
 // Formato: [meta, [{indicator:{id,value}, country:{id,value}, countryiso3code,
 //          date:"2024", value: number|null, ...}, ...]]
 // Linhas com value null = ano sem dado para o país — descartadas.
+// Os parsers aceitam o texto bruto da fonte OU o objeto já parseado (cache).
 
 import type { Observacao } from "./model";
 
@@ -12,8 +13,9 @@ export type LinhaWorldBank = {
   value: number | null;
 };
 
-export function parseWorldBank(txt: string): LinhaWorldBank[] {
-  const bruto = JSON.parse(txt) as unknown;
+export function parseWorldBank(dados: string | unknown): LinhaWorldBank[] {
+  if (typeof dados === "string") dados = JSON.parse(dados) as unknown;
+  const bruto = dados as unknown;
   if (!Array.isArray(bruto) || bruto.length < 2 || !Array.isArray(bruto[1])) {
     throw new Error("World Bank: resposta sem linhas (formato inesperado)");
   }

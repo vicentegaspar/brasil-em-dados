@@ -4,7 +4,7 @@
 // Fontes: IBGE SIDRA (apisidra), uma consulta por indicador (n3/all).
 import { env } from "cloudflare:workers";
 import type { Env } from "../lib/model";
-import { getRankingUf, type LinhaRankingUf } from "../lib/collectors";
+import { getRankingUf, type LinhaRankingUf } from "../lib/coletores/sidra";
 import { formatarNumero } from "../lib/periodos";
 import Base from "../layouts/Base.astro";
 
@@ -66,7 +66,7 @@ const anosDesoc = [...new Set(linhas.map((l) => l.anoDesocupacao).filter(Boolean
               <tr>
                 <td><a href={`/estado/${l.sigla}`}><strong>{l.sigla}</strong></a></td>
                 <td>{l.nome}</td>
-                <td class="num">{l.pib != null ? formatarNumero(l.pib / 1e9, 1) : "—"}</td>
+                <td class="num">{l.pib != null ? formatarNumero(l.pib, 1) : "—"}</td>
                 <td class="num">{l.pibParticipacao != null ? formatarNumero(l.pibParticipacao, 2) : "—"}</td>
                 <td class="num">{l.pibPerCapita != null ? formatarNumero(l.pibPerCapita, 0) : "—"}</td>
                 <td class="num">{l.desocupacao != null ? formatarNumero(l.desocupacao, 1) : "—"}</td>
@@ -108,7 +108,7 @@ const anosDesoc = [...new Set(linhas.map((l) => l.anoDesocupacao).filter(Boolean
       });
       for (const l of linhasArr) corpo.appendChild(l);
     }
-    document.querySelectorAll<HTMLTableCellElement>('#tabela-ufs th[data-ordenavel="true"]').forEach((th, i) => {
+    document.querySelectorAll<HTMLTableCellElement>('#tabela-ufs th[data-ordenavel="true"]').forEach((th) => {
       let dir = -1; // primeira ordenação: maior para menor
       th.addEventListener("click", () => {
         dir = -dir;

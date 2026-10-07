@@ -1,18 +1,12 @@
 // API v1 versionada: lista de indicadores disponíveis + séries completas.
 // ?formato=csv exporta as observações como CSV.
 // Documentação: docs/api.md
+// Os indicadores vêm do REGISTRO ÚNICO (registro.ts) — adicionar um descritor
+// lá basta para aparecer aqui (licença, fonte e unidade vêm do descritor).
 
 import type { Env } from "../../../lib/cache";
-import {
-  getCambio,
-  getCargaEnergia,
-  getDesocupacaoBrasil,
-  getInformalidadeBrasil,
-  getIpcaMensal,
-  getPibBrasil,
-  getSelicMeta,
-} from "../../../lib/collectors";
 import type { IndicadorExibicao } from "../../../lib/model";
+import { descritores } from "../../../lib/registro";
 import { env } from "cloudflare:workers";
 
 export const prerender = false;
@@ -32,7 +26,7 @@ type PayloadIndicador = {
 
 const BRASIL_LOCALIDADE = { nivel: "N1", codigo: "1", nome: "Brasil" };
 
-function paraPayload(ind: IndicadorExibicao): PayloadIndicador {
+function paraPayload(ind: IndicadorExibicao, licenca: string): PayloadIndicador {
   return {
     id: ind.id,
     nome: ind.nome,
@@ -40,7 +34,7 @@ function paraPayload(ind: IndicadorExibicao): PayloadIndicador {
     periodicidade: ind.periodicidade,
     fonte: ind.fonte,
     fonte_url: ind.fonteUrl,
-    licenca: "verde",
+    licenca,
     coletado_em: ind.coletadoEm,
     localidade: BRASIL_LOCALIDADE,
     observacoes: ind.serie.map((o) => ({ periodo: o.periodo, valor: o.valor })),
@@ -48,16 +42,9 @@ function paraPayload(ind: IndicadorExibicao): PayloadIndicador {
 }
 
 async function coletarTodos(e: Env): Promise<PayloadIndicador[]> {
-  const [selic, cambio, ipca, desoc, informal, pib, carga] = await Promise.all([
-    getSelicMeta(e),
-    getCambio(e),
-    getIpcaMensal(e),
-    getDesocupacaoBrasil(e),
-    getInformalidadeBrasil(e),
-    getPibBrasil(e),
-    getCargaEnergia(e),
-  ]);
-  return [selic, cambio, ipca, desoc, informal, pib, carga.total].map(paraPayload);
+  const desc = descritores();
+  const res = await Promise.all(desc.map((d) => d.coletar(e)));
+  return res.map((ind, i) => paraPayload(ind, desc[i].licenca));
 }
 
 function paraCsv(indicadores: PayloadIndicador[]): string {

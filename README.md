@@ -50,10 +50,12 @@ O KV `CACHE` é resolvido em dev via `platformProxy` do `wrangler.jsonc`
 - `GET /estados` — ranking ordenável das 27 UFs (PIB, PIB per capita derivado, desocupação, informalidade, população)
 - `GET /estado/<sigla>` — drill-down por UF (PIB, participação, desocupação, informalidade)
 - `GET /scorecards` — índices de investimento com definição/fonte e índice composto com fórmula visível
+- `GET /impostos` — tabelas de alíquotas básicas Brasil × EUA (IRPF, IRPJ/CSLL/PIS-Cofins, federal income tax, corporate tax) com fonte e vigência
 - `GET /empresas` — balanços de 15 listadas (DRE consolidada da CVM)
 - `GET /api/v1/indicadores` — API v1 (JSON, séries completas; `?formato=csv` exporta CSV) — docs em `docs/api.md`
-- `GET /api/v1/serie?id=...&inicio=&fim=` — série individual por indicador/localidade (World Bank, BCB, SIDRA, ONS) — docs em `docs/api.md`
-- `GET /api/indicadores.json` — endpoint legado do F1 (população + IPCA 12m)
+- `GET /api/v1/serie?id=...&inicio=&fim=` — série individual por indicador/localidade (World Bank, BCB, SIDRA, ONS, derivados) — docs em `docs/api.md`
+- `GET /api/v1/impostos.json` — dataset de impostos básicos (Brasil × EUA) — docs em `docs/api.md`
+- `GET /api/indicadores.json` — endpoint legado do F1, servido pelo registro único (todos os indicadores nacionais)
 
 ## Roadmap
 

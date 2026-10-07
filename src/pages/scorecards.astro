@@ -4,12 +4,8 @@
 // fórmula documentada e componentes ligáveis/desligáveis no cliente.
 import { env } from "cloudflare:workers";
 import type { Env } from "../lib/model";
-import {
-  getIpcaAcum12m,
-  getJurosReais,
-  getPibPerCapitaBrasil,
-  getRankingUf,
-} from "../lib/collectors";
+import { getJurosReais, getPibPerCapitaBrasil } from "../lib/coletores/derivados";
+import { getIpcaAcum12m, getRankingUf } from "../lib/coletores/sidra";
 import { getPainelPaises } from "../lib/worldbank";
 import { formatarNumero } from "../lib/periodos";
 import Base from "../layouts/Base.astro";
@@ -184,7 +180,7 @@ const KPIS = [
           {topPib.map((r, i) => (
             <p class="linha-score">
               <span>{i + 1}. <a href={`/estado/${r.sigla}`}>{r.sigla}</a> — {r.nome}</span>
-              <span class="valor-dado">R$ {formatarNumero((r.pib ?? 0) / 1e9, 1)} bi <span class="periodo-ref">({r.anoPib})</span></span>
+              <span class="valor-dado">R$ {formatarNumero(r.pib ?? 0, 1)} bi <span class="periodo-ref">({r.anoPib})</span></span>
             </p>
           ))}
         </div>

@@ -4,12 +4,16 @@
 import type { Observacao, Periodicidade } from "./model";
 import { normalizarPeriodo } from "./periodos";
 
-/** SGS/BCB: [{"data":"03/11/2026","valor":"13.75"}, ...] */
-export function parseBcbSgs(txt: string, periodicidade: Extract<Periodicidade, "diaria" | "mensal"> = "diaria"): Observacao[] {
-  const dados = JSON.parse(txt) as { data: string; valor: string }[];
-  if (!Array.isArray(dados)) throw new Error("BCB SGS: resposta não é um array");
+/**
+ * SGS/BCB: [{"data":"03/11/2026","valor":"13.75"}, ...]
+ * Aceita o texto bruto da fonte OU o objeto já parseado (cache).
+ */
+export function parseBcbSgs(dados: string | unknown, periodicidade: Extract<Periodicidade, "diaria" | "mensal"> = "diaria"): Observacao[] {
+  if (typeof dados === "string") dados = JSON.parse(dados) as unknown;
+  const arr = dados as { data: string; valor: string }[];
+  if (!Array.isArray(arr)) throw new Error("BCB SGS: resposta não é um array");
   const obs: Observacao[] = [];
-  for (const item of dados) {
+  for (const item of arr) {
     const valor = Number(item.valor);
     if (!Number.isFinite(valor)) continue; // '-' ou vazio
     const periodo = normalizarPeriodo(periodicidade, item.data);
@@ -19,11 +23,15 @@ export function parseBcbSgs(txt: string, periodicidade: Extract<Periodicidade, "
   return obs.sort((a, b) => a.periodo.localeCompare(b.periodo));
 }
 
-/** apisidra (values): [{V:"Valor",...cabeçalho}, {NC:"3", ..., D2C:"2022", D3C:"11", D3N:"Rondônia", V:"1234"}] */
+/**
+ * apisidra (values): [{V:"Valor",...cabeçalho}, {NC:"3", ..., D2C:"2022", D3C:"11", D3N:"Rondônia", V:"1234"}]
+ * Aceita o texto bruto da fonte OU o objeto já parseado (cache).
+ */
 export type SidraLinha = Record<string, string>;
 
-export function parseSidraValues(txt: string): SidraLinha[] {
-  const bruto = JSON.parse(txt) as SidraLinha[];
+export function parseSidraValues(dados: string | unknown): SidraLinha[] {
+  if (typeof dados === "string") dados = JSON.parse(dados) as unknown;
+  const bruto = dados as SidraLinha[];
   if (!Array.isArray(bruto) || bruto.length === 0) throw new Error("SIDRA: resposta vazia");
   return bruto.slice(1); // [0] é o cabeçalho
 }

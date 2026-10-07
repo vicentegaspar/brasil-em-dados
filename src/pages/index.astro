@@ -1,21 +1,24 @@
 ---
 // Home: 4+ KPIs principais em linha, cards com fonte/referência, hero enxuto.
 import type { Env, IndicadorExibicao } from "../lib/model";
-import {
-  getCambio,
-  getCargaEnergia,
-  getDesocupacaoBrasil,
-  getInformalidadeBrasil,
-  getIpcaMensal,
-  getPibBrasil,
-  getSelicMeta,
-} from "../lib/collectors";
+import { descritorPorId } from "../lib/registro";
 import { env } from "cloudflare:workers";
 import Base from "../layouts/Base.astro";
 
 export const prerender = false;
 
 const E = env as unknown as Env;
+
+// Os indicadores da home vêm do registro único — mesmos ids de /api/v1/serie.
+const IDS_HOME = [
+  "bcb-selic",
+  "bcb-cambio",
+  "bcb-ipca-mensal",
+  "sidra-desocupacao",
+  "sidra-informalidade",
+  "sidra-pib",
+  "ons-carga",
+] as const;
 
 type Card = {
   nome: string;
@@ -48,16 +51,10 @@ function paraCard(ind: IndicadorExibicao): Card {
 let cards: Card[] = [];
 let erros: string[] = [];
 try {
-  const [selic, cambio, ipca, desoc, informal, pib, carga] = await Promise.all([
-    getSelicMeta(E),
-    getCambio(E),
-    getIpcaMensal(E),
-    getDesocupacaoBrasil(E),
-    getInformalidadeBrasil(E),
-    getPibBrasil(E),
-    getCargaEnergia(E),
-  ]);
-  for (const ind of [selic, cambio, ipca, desoc, informal, pib, carga.total]) {
+  const res = await Promise.all(
+    IDS_HOME.map((id) => descritorPorId(id)!.coletar(E)),
+  );
+  for (const ind of res) {
     if (ind.indisponivelMotivo) erros.push(ind.indisponivelMotivo);
     cards.push(paraCard(ind));
   }

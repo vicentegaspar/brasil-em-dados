@@ -2,17 +2,20 @@
 // Fonte gratuita, sem chave, licença CC-BY 4.0 (atribuição).
 // Endpoint: https://api.worldbank.org/v2/country/<ISO2;...>/indicator/<cod>?format=json
 // Uma chamada por indicador cobre todos os países; cache KV de 24h (série anual).
+// A montagem do IndicadorExibicao usa a função única de model.ts (MetaIndicador).
 
 import { cachedJson, type Env } from "./cache";
-import type { IndicadorExibicao, Observacao } from "./model";
-import { indicadorPendente } from "./model";
+import {
+  indicadorPendente,
+  montarIndicador,
+  type IndicadorExibicao,
+  type MetaIndicador,
+} from "./model";
 import {
   parseWorldBank,
   observacoesWorldBank,
-  variacaoYoY,
   type LinhaWorldBank,
 } from "./parsers-worldbank";
-import { formatarNumero } from "./periodos";
 
 export type CodPais = { iso2: string; iso3: string; nome: string };
 
@@ -99,40 +102,22 @@ export function defWb(codigo: string): DefIndicadorWb | undefined {
 
 const WB_BASE = "https://api.worldbank.org/v2/country/BR;US;JP;AR;MX;CL;DE;CN;IN;KR;PT/indicator";
 
-function agora(): string {
-  return new Date().toISOString();
-}
+/** Janela da série anual entregue (26 anos — igual ao período baixado). */
+const JANELA_SERIE_WB = 26;
 
-function montar(
-  def: DefIndicadorWb,
-  cod: CodPais,
-  obs: Observacao[],
-): IndicadorExibicao {
-  if (obs.length === 0) {
-    return indicadorPendente(
-      `wb-${def.codigo}-${cod.iso3}`,
-      `${def.nome} — ${cod.nome}`,
-      "World Bank não retornou dados para este país/indicador.",
-      "World Bank Open Data (CC-BY 4.0)",
-      def.fonteUrl,
-    );
-  }
-  const ultima = obs[obs.length - 1];
-  const yoy = variacaoYoY(obs, def.percentual);
+function meta(def: DefIndicadorWb, cod: CodPais): MetaIndicador {
   return {
     id: `wb-${def.codigo}-${cod.iso3}`,
     nome: `${def.nome} — ${cod.nome}`,
     unidade: def.unidade,
     periodicidade: "anual",
-    valor: ultima.valor,
-    valorFormatado: formatarNumero(ultima.valor, def.casas),
-    periodo: ultima.periodo,
-    periodoFormatado: ultima.periodo,
-    variacaoPct: yoy ? yoy.valor : null,
-    serie: obs.slice(-26),
     fonte: "World Bank Open Data (CC-BY 4.0)",
     fonteUrl: def.fonteUrl,
-    coletadoEm: agora(),
+    licenca: "verde",
+    casas: def.casas,
+    janelaSerie: JANELA_SERIE_WB,
+    // séries já em % têm variação em pontos percentuais, não % relativa
+    variacaoTipo: def.percentual ? "pp" : "pct",
   };
 }
 
@@ -147,16 +132,25 @@ export async function getSeriePaises(
   const def = defWb(codigo);
   if (!def) return {};
   try {
-    const json = (await cachedJson(
+    const json = await cachedJson(
       env,
       `wb:${codigo}:v2`,
       `${WB_BASE}/${codigo}?format=json&per_page=500&date=2000:2025`,
       24 * 3600,
-    )) as unknown;
-    const linhas = parseWorldBank(JSON.stringify(json)) as LinhaWorldBank[];
+    );
+    const linhas = parseWorldBank(json) as LinhaWorldBank[];
     const saida: Record<string, IndicadorExibicao> = {};
     for (const cod of PAISES) {
-      saida[cod.iso3] = montar(def, cod, observacoesWorldBank(linhas, cod.iso3));
+      const metaPais = meta(def, cod);
+      const obs = observacoesWorldBank(linhas, cod.iso3);
+      if (obs.length === 0) {
+        saida[cod.iso3] = indicadorPendente(
+          metaPais,
+          "World Bank não retornou dados para este país/indicador.",
+        );
+      } else {
+        saida[cod.iso3] = montarIndicador(metaPais, obs);
+      }
     }
     return saida;
   } catch (e) {

@@ -14,11 +14,6 @@ export function formatarPeriodoMensal(periodo: string): string {
   return `${MESES_ABREV[mes - 1] ?? mes}/${m[1]}`;
 }
 
-/** "2025" -> "2025" (identidade, mas valida) */
-export function formatarPeriodoAnual(periodo: string): string {
-  return /^\d{4}$/.test(periodo) ? periodo : periodo;
-}
-
 /** "2026-10-05" -> "05/out/2026"; "05/10/2026" (BCB) -> "05/out/2026" */
 export function formatarPeriodoDiaria(periodo: string): string {
   let a: string, me: string, d: string;

@@ -4,58 +4,28 @@
 // Chart.js UMD self-hosted (public/vendor/chart.umd.js) — sem CDN, sem
 // framework JS. Dados via /api/v1/serie?id=... (JSON já versionado).
 import Base from "../layouts/Base.astro";
+import { descritores } from "../lib/registro";
+import { INDICADORES_WB, PAISES } from "../lib/worldbank";
 
 export const prerender = false;
 
-// Catálogo de séries selecionáveis (id -> rótulo) — agrupado por fonte.
+// Catálogo de séries selecionáveis gerado dos registros — nada hardcoded:
+// World Bank vem de INDICADORES_WB (worldbank.ts) e as séries nacionais do
+// registro único (registro.ts), agrupadas pelo campo `grupo`.
 const GRUPOS: { grupo: string; series: { id: string; nome: string }[] }[] = [
   {
     grupo: "World Bank (países, anual)",
-    series: [
-      { id: "wb-NY.GDP.MKTP.KD.ZG", nome: "Crescimento do PIB (%)" },
-      { id: "wb-NY.GDP.PCAP.CD", nome: "PIB per capita (US$)" },
-      { id: "wb-SL.UEM.TOTL.ZS", nome: "Desemprego (%)" },
-      { id: "wb-FP.CPI.TOTL.ZG", nome: "Inflação (%)" },
-      { id: "wb-SP.POP.TOTL", nome: "População (hab)" },
-      { id: "wb-GC.DOD.TOTL.GD.ZS", nome: "Dívida governo central (% PIB)" },
-    ],
+    series: INDICADORES_WB.map((d) => ({
+      id: `wb-${d.codigo}`,
+      nome: `${d.nome} (${d.unidade})`,
+    })),
   },
-  {
-    grupo: "BCB SGS (Brasil)",
-    series: [
-      { id: "bcb-selic", nome: "Selic meta (% a.a.)" },
-      { id: "bcb-cambio", nome: "Dólar PTAX compra (R$/US$)" },
-      { id: "bcb-ipca-mensal", nome: "IPCA mensal (%)" },
-    ],
-  },
-  {
-    grupo: "IBGE (Brasil)",
-    series: [
-      { id: "sidra-desocupacao", nome: "Desocupação Brasil (%) — trimestral móvel" },
-      { id: "sidra-ipca-12m", nome: "IPCA acumulado 12 meses (%)" },
-      { id: "sidra-informalidade", nome: "Informalidade (%)" },
-      { id: "sidra-pib", nome: "PIB corrente (R$ bi)" },
-      { id: "sidra-populacao", nome: "População estimada (hab)" },
-    ],
-  },
-  {
-    grupo: "ONS (Brasil)",
-    series: [{ id: "ons-carga", nome: "Carga de energia total (MWmed)" }],
-  },
-];
-
-const PAISES = [
-  ["BRA", "Brasil"],
-  ["USA", "Estados Unidos"],
-  ["JPN", "Japão"],
-  ["ARG", "Argentina"],
-  ["MEX", "México"],
-  ["CHL", "Chile"],
-  ["DEU", "Alemanha"],
-  ["CHN", "China"],
-  ["IND", "Índia"],
-  ["KOR", "Coreia do Sul"],
-  ["PRT", "Portugal"],
+  ...[...new Set(descritores().map((d) => d.grupo))].map((grupo) => ({
+    grupo,
+    series: descritores()
+      .filter((d) => d.grupo === grupo)
+      .map((d) => ({ id: d.id, nome: `${d.nome} (${d.unidade})` })),
+  })),
 ];
 ---
 
@@ -87,7 +57,7 @@ const PAISES = [
         <div>
           <label for="sel-paises" style="font-size:12px; color:var(--muted); display:block; margin-bottom:4px">Localidades — apenas séries World Bank (1..N)</label>
           <select id="sel-paises" multiple size="6" style="width:100%; background:var(--surface); color:var(--text); border:1px solid var(--border); border-radius:8px; padding:8px">
-            {PAISES.map(([iso3, nome]) => <option value={iso3}>{nome}</option>)}
+            {PAISES.map((p) => <option value={p.iso3}>{p.nome}</option>)}
           </select>
           <p class="fonte-ref" style="margin-top:6px">Nenhuma localidade selecionada = Brasil (BRA).</p>
         </div>
@@ -220,7 +190,6 @@ const PAISES = [
       // rótulo do eixo X: períodos ordenados
       const todos = new Set();
       for (const d of dados) for (const o of d.observacoes) todos.add(o.periodo);
-      const periodos = [...todos].sort();
       const datasets = dados.map((d, i) => ({
         label: `${d.nome} (${d.unidade})`,
         data: d.observacoes.map((o) => ({ x: o.periodo, y: o.valor })),

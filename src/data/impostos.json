@@ -1,0 +1,79 @@
+{
+  "atualizado_em": "2026-10-06",
+  "notas": "Dataset de referência estática — tabelas de alíquotas vigentes, com fonte e vigência por tabela. Não é série temporal; não constitui aconselhamento tributário.",
+  "tabelas": [
+    {
+      "id": "br-irpf-mensal",
+      "pais": "BR",
+      "paisNome": "Brasil",
+      "titulo": "IRPF pessoa física — tabela progressiva mensal",
+      "moeda": "R$",
+      "vigencia": "2026",
+      "fonte": "Receita Federal do Brasil — Lei nº 9.250/1991, tabela vigente + redutores da Lei nº 15.270/2025",
+      "fonte_url": "https://www.planalto.gov.br/ccivil_03/leis/l9250.htm",
+      "licenca": "verde",
+      "notas": "Com os redutores da Lei 15.270/2025, rendimentos mensais até R$ 5.000,00 têm imposto zerado; entre R$ 5.000,01 e R$ 7.350,00 a redução é R$ 978,62 − 0,133145 × renda mensal (zera em R$ 7.350).",
+      "faixas": [
+        { "de": 0, "ate": 2428.8, "aliquota": 0, "deducao": 0 },
+        { "de": 2428.81, "ate": 2826.65, "aliquota": 7.5, "deducao": 182.16 },
+        { "de": 2826.66, "ate": 3751.05, "aliquota": 15, "deducao": 394.16 },
+        { "de": 3751.06, "ate": 4664.68, "aliquota": 22.5, "deducao": 675.49 },
+        { "de": 4664.69, "aliquota": 27.5, "deducao": 908.73 }
+      ]
+    },
+    {
+      "id": "br-empresas",
+      "pais": "BR",
+      "paisNome": "Brasil",
+      "titulo": "Empresas — tributos federais no regime de lucro real",
+      "moeda": "%",
+      "vigencia": "2026",
+      "fonte": "Receita Federal do Brasil",
+      "fonte_url": "https://www.gov.br/receitafederal",
+      "licenca": "verde",
+      "notas": "O adicional de IRPJ de 10% incide sobre a parcela do lucro anual que excede R$ 240.000,00. Desde 2026, dividendos a pessoa física acima de R$ 50.000,00/mês por pagador têm retenção na fonte de 10% (Lei 15.270/2025); renda anual acima de R$ 600 mil fica sujeita à tributação mínima progressiva de até 10%.",
+      "faixas": [
+        { "nome": "IRPJ — alíquota básica", "aliquota": 15 },
+        { "nome": "IRPJ — adicional (lucro anual > R$ 240 mil)", "aliquota": 10 },
+        { "nome": "CSLL", "aliquota": 9 },
+        { "nome": "PIS/Pasep (regime cumulativo)", "aliquota": 0.65 },
+        { "nome": "Cofins (regime cumulativo)", "aliquota": 7.6 },
+        { "nome": "PIS/Cofins (regime não cumulativo, combinados)", "aliquota": 9.25 }
+      ]
+    },
+    {
+      "id": "us-irpf-single",
+      "pais": "US",
+      "paisNome": "Estados Unidos",
+      "titulo": "Federal income tax — single filer",
+      "moeda": "US$",
+      "vigencia": "2026",
+      "fonte": "IRS — Revenue Procedure 2025-32 (tax year 2026)",
+      "fonte_url": "https://www.irs.gov/pub/irs-drop/rp-25-32.pdf",
+      "licenca": "verde",
+      "notas": "Faixas de taxable income em dólares. Married filing jointly e heads of household têm limites diferentes (ver IRS).",
+      "faixas": [
+        { "de": 0, "ate": 12400, "aliquota": 10 },
+        { "de": 12401, "ate": 50400, "aliquota": 12 },
+        { "de": 50401, "ate": 105700, "aliquota": 22 },
+        { "de": 105701, "ate": 201775, "aliquota": 24 },
+        { "de": 201776, "ate": 256225, "aliquota": 32 },
+        { "de": 256226, "ate": 640600, "aliquota": 35 },
+        { "de": 640601, "aliquota": 37 }
+      ]
+    },
+    {
+      "id": "us-empresas",
+      "pais": "US",
+      "paisNome": "Estados Unidos",
+      "titulo": "Corporate income tax (flat)",
+      "moeda": "%",
+      "vigencia": "2026",
+      "fonte": "IRS — TCJA (alíquota única, permanente)",
+      "fonte_url": "https://www.irs.gov/filing/federal-income-tax-rates-and-brackets",
+      "licenca": "verde",
+      "notas": "Alíquota única sobre o lucro tributável de corporações federais (Tax Cuts and Jobs Act de 2017, permanentes desde o OBBBA de 2025).",
+      "faixas": [{ "nome": "Corporate income tax", "aliquota": 21 }]
+    }
+  ]
+}
