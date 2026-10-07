@@ -1,8 +1,11 @@
 ---
-// Estado: drill-down Brasil -> UF (N3) com PIB, participação, desocupação e informalidade.
+// Estado: drill-down Brasil -> UF (N3) com PIB, participação, desocupação e
+// informalidade (IBGE SIDRA) + indicadores de data centers: tarifa de energia
+// (ANEEL), ICMS arrecadado (CONFAZ/SIGDEF), reforma IBS/CBS e m² (indisponível).
 import type { Env } from "../../lib/model";
 import { getIndicadoresUf } from "../../lib/coletores/sidra";
 import { UFS } from "../../lib/localidades";
+import { datacentersPorSigla, TARIFAS_META, REFORMA } from "../../lib/datacenters";
 import { env } from "cloudflare:workers";
 import Base from "../../layouts/Base.astro";
 
@@ -12,13 +15,56 @@ const E = env as unknown as Env;
 const { sigla } = Astro.params;
 const dados = sigla ? await getIndicadoresUf(E, sigla) : null;
 const uf = dados?.uf ?? null;
+const dc = datacentersPorSigla(sigla ?? "");
+
+const fmtBRL = (v: number, casas = 2) =>
+  v.toLocaleString("pt-BR", { minimumFractionDigits: casas, maximumFractionDigits: casas });
+const linhasDc: Array<{ rotulo: string; valor: string | null; nota: string | null }> = dc
+  ? [
+      {
+        rotulo: "Tarifa de energia — indústria (A4, energia)",
+        valor: dc.tarifaIndustrial != null ? `${fmtBRL(dc.tarifaIndustrial, 3)} R$/kWh` : null,
+        nota: `Vigência ${dc.vigenciaTarifa || "—"} · média entre ${dc.nDistribuidoras} distribuidora(s) · ANEEL`,
+      },
+      {
+        rotulo: "Tarifa de energia — comércio (B3)",
+        valor: dc.tarifaComercial != null ? `${fmtBRL(dc.tarifaComercial, 3)} R$/kWh` : null,
+        nota: `Vigência ${dc.vigenciaTarifa || "—"} · ANEEL`,
+      },
+      {
+        rotulo: "Tarifa de energia — residencial (B1)",
+        valor: dc.tarifaResidencial != null ? `${fmtBRL(dc.tarifaResidencial, 3)} R$/kWh` : null,
+        nota: `Vigência ${dc.vigenciaTarifa || "—"} · ANEEL`,
+      },
+      {
+        rotulo: "ICMS arrecadado — último mês disponível",
+        valor: dc.icmsUltimoMesBi != null ? `${fmtBRL(dc.icmsUltimoMesBi, 2)} R$ bi (${dc.icmsUltimoMes})` : null,
+        nota: "CONFAZ/SIGDEF — Boletim de Arrecadação dos Tributos Estaduais",
+      },
+      {
+        rotulo: "ICMS arrecadado — ano-base completo",
+        valor: dc.icmsAnoBaseBi != null ? `${fmtBRL(dc.icmsAnoBaseBi, 1)} R$ bi (${dc.icmsAnoReferencia})` : null,
+        nota: "CONFAZ/SIGDEF — 12 meses com valor",
+      },
+      {
+        rotulo: "IBS/CBS (LC 214/2025)",
+        valor: "Alíquota única nacional",
+        nota: `IBS 0,1% + CBS 0,9% em 2026 (ano-teste); CBS cheia 2027; IBS pleno 2033 — ICMS extinto gradualmente (2029-2032).`,
+      },
+      {
+        rotulo: "m² médio de venda (capital)",
+        valor: null,
+        nota: "Indisponível — FipeZap+ é PDF mensal sem API (nada inventado).",
+      },
+    ]
+  : [];
 ---
 
-<Base titulo={uf ? uf.nome : "Estado não encontrado"} paginaAtiva="estados" descricao={uf ? `PIB, desocupação, informalidade e população de ${uf.nome} — dados do IBGE.` : "Estado não encontrado."}>
+<Base titulo={uf ? uf.nome : "Estado não encontrado"} paginaAtiva="estados" descricao={uf ? `PIB, desocupação, informalidade, população e indicadores de data centers de ${uf.nome}.` : "Estado não encontrado."}>
   <main class="conteiner">
     <section class="cabecalho">
       <h1>{uf ? uf.nome : "Estado não encontrado"}</h1>
-      <p>Drill-down Brasil → UF: PIB e mercado de trabalho com dados do IBGE (SIDRA).</p>
+      <p>Drill-down Brasil → UF: PIB e mercado de trabalho (IBGE SIDRA) + tarifa de energia, ICMS e reforma IBS/CBS (painel <a href="/datacenters">Data centers</a>).</p>
     </section>
 
     <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:24px">
@@ -51,5 +97,29 @@ const uf = dados?.uf ?? null;
         </article>
       ))}
     </div>
+
+    {dc && (
+      <section class="card" style="margin-top:24px">
+        <h2 class="card-label">Data centers — energia, ICMS e reforma</h2>
+        <div class="tabela-wrap" style="margin-top:12px">
+          <table class="tabela">
+            <thead><tr><th>Indicador</th><th>Valor</th><th>Nota / fonte</th></tr></thead>
+            <tbody>
+              {linhasDc.map((l) => (
+                <tr>
+                  <td>{l.rotulo}</td>
+                  <td><strong>{l.valor ?? "—"}</strong></td>
+                  <td style="font-size:13px; color:var(--muted)">{l.nota}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p style="font-size:13px; color:var(--muted); margin:12px 0 0">
+          Tarifa ({TARIFAS_META.unidade}): metodologia e lacunas na página <a href="/datacenters">/datacenters</a>.
+          Fonte da reforma: <a href={REFORMA.fonteUrl}>{REFORMA.fonte}</a>.
+        </p>
+      </section>
+    )}
   </main>
 </Base>

@@ -1,0 +1,143 @@
+---
+// Data centers: ranking das 27 UFs para avaliação de localização — tarifa de
+// energia (ANEEL), ICMS arrecadado (CONFAZ/SIGDEF), timeline IBS/CBS (LC
+// 214/2025) e m² por capital (indisponível — FipeZap sem API; nada inventado).
+// Datasets estáticos versionados em src/data/*.json — tabela ordenável no
+// cliente, sem framework JS (mesmo padrão de estados.astro).
+import Base from "../layouts/Base.astro";
+import {
+  linhasDatacenters,
+  TARIFAS_META,
+  ICMS_META,
+  REFORMA,
+  type LinhaDatacenter,
+} from "../lib/datacenters";
+
+export const prerender = false;
+
+const linhas: LinhaDatacenter[] = linhasDatacenters();
+const anosIcms = [...new Set(linhas.map((l) => l.icmsAnoReferencia).filter(Boolean))];
+const vigenciasTarifa = [...new Set(linhas.map((l) => l.vigenciaTarifa).filter(Boolean))];
+
+const fmt = (v: number | null, casas = 2) =>
+  v == null ? "—" : v.toLocaleString("pt-BR", { minimumFractionDigits: casas, maximumFractionDigits: casas });
+---
+
+<Base titulo="Data centers — onde instalar" paginaAtiva="datacenters" descricao="Ranking das 27 UFs para data centers: tarifa de energia (ANEEL), ICMS arrecadado (CONFAZ) e timeline IBS/CBS (LC 214/2025).">
+  <main class="conteiner">
+    <section class="cabecalho">
+      <h1>Data centers — onde instalar</h1>
+      <p>
+        Comparativo estadual para avaliação de localização: tarifa de energia elétrica
+        (<a href={TARIFAS_META.fonteUrl}>ANEEL — tarifas homologadas</a>, {TARIFAS_META.unidade}),
+        ICMS arrecadado (<a href={ICMS_META.fonteUrl}>CONFAZ/SIGDEF</a>) e a transição
+        <a href={REFORMA.fonteUrl}>IBS/CBS (LC 214/2025)</a> — que extingue gradualmente
+        o ICMS, base dos incentivos estaduais. Clique nos cabeçalhos para ordenar.
+        Coluna <strong>m² médio</strong> indisponível: FipeZap é publicado em PDF mensal,
+        sem API — quando não dá para extrair com confiança, mostramos "—" (nada inventado).
+      </p>
+    </section>
+
+    <p class="fonte-ref" style="margin-bottom:12px">
+      Tarifas: vigências {vigenciasTarifa.join(", ") || "—"} · ICMS: ano-base completo {anosIcms.join(", ") || "—"} (por UF) ·
+      Gerado em {TARIFAS_META.geradoEm}
+    </p>
+
+    <div class="tabela-wrap" id="ranking">
+      <table class="tabela" id="tabela-dc">
+        <thead>
+          <tr>
+            <th data-ordenavel="false">UF</th>
+            <th data-ordenavel="false">Estado</th>
+            <th data-ordenavel="true" data-col="industrial" class="num" title="A4 industrial, modalidade Verde, fora ponta — componente de energia (R$/kWh)">Indústria (R$/kWh)</th>
+            <th data-ordenavel="true" data-col="comercial" class="num" title="B3 comercial convencional (R$/kWh)">Comércio (R$/kWh)</th>
+            <th data-ordenavel="true" data-col="residencial" class="num" title="B1 residencial convencional (R$/kWh)">Resid. (R$/kWh)</th>
+            <th data-ordenavel="true" data-col="icmsAno" class="num" title="ICMS arrecadado no ano-base completo mais recente de cada UF (R$ bilhões)">ICMS ano (R$ bi)</th>
+            <th data-ordenavel="true" data-col="icmsMes" class="num" title="ICMS no último mês disponível por UF (R$ bilhões)">ICMS mês (R$ bi)</th>
+            <th data-ordenavel="false" title="m² médio de venda na capital — FipeZap sem API: indisponível">m² (R$/m²)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {linhas.map((l) => (
+            <tr>
+              <td><a href={`/estado/${l.sigla}`}><strong>{l.sigla}</strong></a></td>
+              <td>{l.nome}</td>
+              <td class="num">{fmt(l.tarifaIndustrial, 3)}</td>
+              <td class="num">{fmt(l.tarifaComercial, 3)}</td>
+              <td class="num">{fmt(l.tarifaResidencial, 3)}</td>
+              <td class="num">{l.icmsAnoBaseBi != null ? `${fmt(l.icmsAnoBaseBi, 1)} (${l.icmsAnoReferencia})` : "—"}</td>
+              <td class="num">{l.icmsUltimoMesBi != null ? `${fmt(l.icmsUltimoMesBi, 2)} (${l.icmsUltimoMes})` : "—"}</td>
+              <td class="num"><span title="Indisponível — FipeZap é PDF mensal sem API.">—</span></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <section class="card" style="margin-top:24px">
+      <h2 class="card-label">Reforma tributária — IBS/CBS (vale para as 27 UFs)</h2>
+      <p style="font-size:14px; color:var(--muted)">
+        O IBS tem alíquota <strong>única nacional</strong> — não existe "alíquota por estado".
+        O que muda por UF na janela 2026-2032 é a redução gradual da competência do ICMS
+        (hoje, base dos incentivos estaduais a data centers) em favor do IBS uniforme.
+      </p>
+      <div class="tabela-wrap" style="margin-top:12px">
+        <table class="tabela">
+          <thead><tr><th>Ano</th><th>Fase</th><th>Detalhe</th></tr></thead>
+          <tbody>
+            {REFORMA.timeline.map((t) => (
+              <tr><td><strong>{t.ano}</strong></td><td>{t.fase}</td><td style="font-size:14px; color:var(--muted)">{t.detalhe}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:16px">
+      <h2 class="card-label">Metodologia e lacunas</h2>
+      <p style="font-size:14px; color:var(--muted); margin:0 0 8px">
+        <strong>Tarifa ({TARIFAS_META.unidade}):</strong> {TARIFAS_META.metodologia}
+        Licença: {TARIFAS_META.licenca}.
+      </p>
+      <p style="font-size:14px; color:var(--muted); margin:0 0 8px">
+        <strong>ICMS:</strong> {ICMS_META.metodologia}
+        {ICMS_META.extracaoArquivo ? ` Extração da planilha: ${ICMS_META.extracaoArquivo}.` : ""}
+        A API pública do dados.gov.br passou a exigir autenticação gov.br — o último boletim
+        com acesso direto é o de {ICMS_META.extracaoArquivo ?? "ago/2025"}; meses seguintes ficam pendentes até nova extração.
+      </p>
+      <p style="font-size:14px; color:var(--muted); margin:0">
+        <strong>m² médio:</strong> indisponível — FipeZap+ é publicado em PDF mensal sem API/CSV
+        estruturado; coluna exibida como "—" em vez de estimativa. <strong>Backhaul Anatel e
+        temperatura (INMET):</strong> backlog. UF sem valor na fonte aparece como "—" (nunca zero).
+      </p>
+    </section>
+  </main>
+
+  <script>
+    // Ordenação — vanilla, igual a estados.astro.
+    function ordenar(col: string, dir: number) {
+      const tabela = document.getElementById("tabela-dc") as HTMLTableElement;
+      if (!tabela) return;
+      const corpo = tabela.tBodies[0];
+      const indice = [...tabela.tHead!.rows[0].cells].findIndex((c) => c.dataset.col === col);
+      const linhasArr = [...corpo.rows];
+      linhasArr.sort((a, b) => {
+        const av = a.cells[indice].textContent!.trim();
+        const bv = b.cells[indice].textContent!.trim();
+        const an = av === "—" ? -Infinity : Number(av.replace(/\./g, "").replace(",", "."));
+        const bn = bv === "—" ? -Infinity : Number(bv.replace(/\./g, "").replace(",", "."));
+        return (Number.isNaN(an) || Number.isNaN(bn) ? av.localeCompare(bv) : an - bn) * dir;
+      });
+      for (const l of linhasArr) corpo.appendChild(l);
+    }
+    document.querySelectorAll<HTMLTableCellElement>('#tabela-dc th[data-ordenavel="true"]').forEach((th) => {
+      let dir = -1;
+      th.addEventListener("click", () => {
+        dir = -dir;
+        ordenar(th.dataset.col!, dir);
+        document.querySelectorAll<HTMLTableCellElement>("#tabela-dc th").forEach((o) => (o.textContent = o.textContent!.replace(/ [▲▼]$/, "")));
+        th.textContent = `${th.textContent} ${dir === -1 ? "▼" : "▲"}`;
+      });
+    });
+  </script>
+</Base>

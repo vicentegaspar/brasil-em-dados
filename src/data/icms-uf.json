@@ -1,0 +1,254 @@
+{
+  "fonte": "CONFAZ/SIGDEF — Boletim de Arrecadação dos Tributos Estaduais (ICMS)",
+  "fonteUrl": "https://www.confaz.fazenda.gov.br/boletim-de-arrecadacao-dos-tributos-estaduais",
+  "licenca": "Creative Commons Attribution (dados.gov.br)",
+  "unidade": "R$",
+  "metodologia": "Planilha mensal SIGDEF do CONFAZ. Por UF: último mês com va_icms_total > 0 (as UFs reportam com defasagens distintas — o arquivo traz 'pendências') e somatório do ano calendário completo mais recente (12 meses com valor). Meses sem valor na fonte ficam fora; UF sem valor fica sem valor.",
+  "extracaoArquivo": "Dados de 01/1997 a 08/2025 com pendencias.",
+  "ufsWithoutData": [],
+  "ufs": {
+    "AC": {
+      "sigla": "AC",
+      "nome": "Acre",
+      "ultimoMes": "2024-02",
+      "icmsUltimoMes": 166420912.44,
+      "anoBase": 2023,
+      "icmsAnoBase": 1912132558.42,
+      "nMesesAnoBase": 12
+    },
+    "AL": {
+      "sigla": "AL",
+      "nome": "Alagoas",
+      "ultimoMes": "2024-04",
+      "icmsUltimoMes": 687703288.41,
+      "anoBase": 2023,
+      "icmsAnoBase": 6789563210.02,
+      "nMesesAnoBase": 12
+    },
+    "AM": {
+      "sigla": "AM",
+      "nome": "Amazonas",
+      "ultimoMes": "2024-05",
+      "icmsUltimoMes": 1331429978.14,
+      "anoBase": 2023,
+      "icmsAnoBase": 14177983650.09,
+      "nMesesAnoBase": 12
+    },
+    "AP": {
+      "sigla": "AP",
+      "nome": "Amapá",
+      "ultimoMes": "2024-11",
+      "icmsUltimoMes": 136906719.0,
+      "anoBase": 2023,
+      "icmsAnoBase": 1373137088.43,
+      "nMesesAnoBase": 12
+    },
+    "BA": {
+      "sigla": "BA",
+      "nome": "Bahia",
+      "ultimoMes": "2025-08",
+      "icmsUltimoMes": 3541610682.7,
+      "anoBase": 2024,
+      "icmsAnoBase": 40115244780.35,
+      "nMesesAnoBase": 12
+    },
+    "CE": {
+      "sigla": "CE",
+      "nome": "Ceará",
+      "ultimoMes": "2024-01",
+      "icmsUltimoMes": 1633889914.71,
+      "anoBase": 2023,
+      "icmsAnoBase": 17077808325.46,
+      "nMesesAnoBase": 12
+    },
+    "DF": {
+      "sigla": "DF",
+      "nome": "Distrito Federal",
+      "ultimoMes": "2024-01",
+      "icmsUltimoMes": 982448112.14,
+      "anoBase": 2023,
+      "icmsAnoBase": 10004882434.07,
+      "nMesesAnoBase": 12
+    },
+    "ES": {
+      "sigla": "ES",
+      "nome": "Espírito Santo",
+      "ultimoMes": "2024-01",
+      "icmsUltimoMes": 1799534323.74,
+      "anoBase": 2023,
+      "icmsAnoBase": 17820864495.25,
+      "nMesesAnoBase": 12
+    },
+    "GO": {
+      "sigla": "GO",
+      "nome": "Goiás",
+      "ultimoMes": "2024-04",
+      "icmsUltimoMes": 2434259379.46,
+      "anoBase": 2023,
+      "icmsAnoBase": 24525347658.5,
+      "nMesesAnoBase": 12
+    },
+    "MA": {
+      "sigla": "MA",
+      "nome": "Maranhão",
+      "ultimoMes": "2024-04",
+      "icmsUltimoMes": 1202890072.79,
+      "anoBase": 2023,
+      "icmsAnoBase": 10940858554.58,
+      "nMesesAnoBase": 12
+    },
+    "MG": {
+      "sigla": "MG",
+      "nome": "Minas Gerais",
+      "ultimoMes": "2024-02",
+      "icmsUltimoMes": 5925422157.25,
+      "anoBase": 2023,
+      "icmsAnoBase": 71965816791.0,
+      "nMesesAnoBase": 12
+    },
+    "MS": {
+      "sigla": "MS",
+      "nome": "Mato Grosso do Sul",
+      "ultimoMes": "2025-02",
+      "icmsUltimoMes": 1392289560.91,
+      "anoBase": 2024,
+      "icmsAnoBase": 16948737684.4,
+      "nMesesAnoBase": 12
+    },
+    "MT": {
+      "sigla": "MT",
+      "nome": "Mato Grosso",
+      "ultimoMes": "2024-01",
+      "icmsUltimoMes": 1908763191.02,
+      "anoBase": 2023,
+      "icmsAnoBase": 20821456537.84,
+      "nMesesAnoBase": 12
+    },
+    "PA": {
+      "sigla": "PA",
+      "nome": "Pará",
+      "ultimoMes": "2024-08",
+      "icmsUltimoMes": 2067198090.16,
+      "anoBase": 2023,
+      "icmsAnoBase": 20796694968.51,
+      "nMesesAnoBase": 12
+    },
+    "PB": {
+      "sigla": "PB",
+      "nome": "Paraíba",
+      "ultimoMes": "2024-12",
+      "icmsUltimoMes": 913557363.01,
+      "anoBase": 2024,
+      "icmsAnoBase": 9742843422.23,
+      "nMesesAnoBase": 12
+    },
+    "PE": {
+      "sigla": "PE",
+      "nome": "Pernambuco",
+      "ultimoMes": "2024-02",
+      "icmsUltimoMes": 2022760296.73,
+      "anoBase": 2023,
+      "icmsAnoBase": 22084832085.52,
+      "nMesesAnoBase": 12
+    },
+    "PI": {
+      "sigla": "PI",
+      "nome": "Piauí",
+      "ultimoMes": "2024-05",
+      "icmsUltimoMes": 591584627.25,
+      "anoBase": 2023,
+      "icmsAnoBase": 6734640236.92,
+      "nMesesAnoBase": 12
+    },
+    "PR": {
+      "sigla": "PR",
+      "nome": "Paraná",
+      "ultimoMes": "2023-12",
+      "icmsUltimoMes": 4664675213.05,
+      "anoBase": 2023,
+      "icmsAnoBase": 44702539306.11,
+      "nMesesAnoBase": 12
+    },
+    "RJ": {
+      "sigla": "RJ",
+      "nome": "Rio de Janeiro",
+      "ultimoMes": "2024-05",
+      "icmsUltimoMes": 4089760473.88,
+      "anoBase": 2023,
+      "icmsAnoBase": 44051295056.84,
+      "nMesesAnoBase": 12
+    },
+    "RN": {
+      "sigla": "RN",
+      "nome": "Rio Grande do Norte",
+      "ultimoMes": "2024-06",
+      "icmsUltimoMes": 690299562.52,
+      "anoBase": 2023,
+      "icmsAnoBase": 8275108462.86,
+      "nMesesAnoBase": 12
+    },
+    "RO": {
+      "sigla": "RO",
+      "nome": "Rondônia",
+      "ultimoMes": "2025-08",
+      "icmsUltimoMes": 854509777.09,
+      "anoBase": 2024,
+      "icmsAnoBase": 8046108233.52,
+      "nMesesAnoBase": 12
+    },
+    "RR": {
+      "sigla": "RR",
+      "nome": "Roraima",
+      "ultimoMes": "2024-05",
+      "icmsUltimoMes": 175442721.01,
+      "anoBase": 2023,
+      "icmsAnoBase": 1701707875.03,
+      "nMesesAnoBase": 12
+    },
+    "RS": {
+      "sigla": "RS",
+      "nome": "Rio Grande do Sul",
+      "ultimoMes": "2025-08",
+      "icmsUltimoMes": 4425795140.11,
+      "anoBase": 2024,
+      "icmsAnoBase": 50761323625.89,
+      "nMesesAnoBase": 12
+    },
+    "SC": {
+      "sigla": "SC",
+      "nome": "Santa Catarina",
+      "ultimoMes": "2024-02",
+      "icmsUltimoMes": 3362807553.77,
+      "anoBase": 2023,
+      "icmsAnoBase": 36147973816.73,
+      "nMesesAnoBase": 12
+    },
+    "SE": {
+      "sigla": "SE",
+      "nome": "Sergipe",
+      "ultimoMes": "2025-03",
+      "icmsUltimoMes": 486324150.29,
+      "anoBase": 2024,
+      "icmsAnoBase": 5579042834.59,
+      "nMesesAnoBase": 12
+    },
+    "SP": {
+      "sigla": "SP",
+      "nome": "São Paulo",
+      "ultimoMes": "2024-04",
+      "icmsUltimoMes": 18743788722.66,
+      "anoBase": 2023,
+      "icmsAnoBase": 197290195017.83,
+      "nMesesAnoBase": 12
+    },
+    "TO": {
+      "sigla": "TO",
+      "nome": "Tocantins",
+      "ultimoMes": "2025-04",
+      "icmsUltimoMes": 517936613.64,
+      "anoBase": 2024,
+      "icmsAnoBase": 5949437813.79,
+      "nMesesAnoBase": 12
+    }
+  }
+}

@@ -101,6 +101,26 @@ Dataset estático de referência com as alíquotas básicas de imposto — Brasi
 tax single filer 2026, corporate tax). Mesmas tabelas da página `/impostos`,
 com fonte, vigência e licença por tabela. Não é série temporal.
 
+## GET /api/v1/datacenters.json
+
+Pacote estático "onde instalar data centers" — mesmos dados da página
+`/datacenters`, com fonte, metodologia e licença por bloco:
+
+- `tarifaEnergia.ufs` — tarifa por UF (ANEEL, tarifas homologadas): `residencial`
+  (B1 convencional), `comercial` (B3 convencional) e `industrial` (A4 Verde fora
+  ponta, componente de energia) em R$/kWh, média entre distribuidoras da UF;
+  `nDistribuidoras` e `vigencia` por UF. ODbL. Gerado por `scripts/generate-tarifas.ts`.
+- `icms.ufs` — ICMS arrecadado por UF (CONFAZ/SIGDEF, Boletim de Arrecadação):
+  `ultimoMes` + valor, e `anoBase` completo + total anual. CC-BY. Gerado por
+  `scripts/generate_icms.py`. **Lacuna**: a API do dados.gov.br exige autenticação
+  gov.br desde 2026; o último boletim com acesso direto é 12/08/2025 — meses
+  seguintes ficam pendentes (exibidos como "—", nunca zero).
+- `reformaTributaria.timeline` — IBS/CBS (LC 214/2025): ano-teste 2026 (IBS 0,1% +
+  CBS 0,9%, compensáveis), CBS cheia 2027, transição ICMS→IBS 2029-2032, IBS pleno
+  2033. Alíquota única nacional — não existe alíquota por estado.
+- `metroQuadrado` — status `indisponivel`: FipeZap+ é PDF mensal sem API/CSV;
+  nada inventado, coluna exibida como "—".
+
 ## GET /api/indicadores.json (legado, mantido)
 
 Servido pelo registro único: mesmos indicadores de `/api/v1/indicadores`, no

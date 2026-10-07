@@ -1,0 +1,47 @@
+{
+  "fonte": "Receita Federal — Reforma Tributária do Consumo (LC 214/2025); CGIBS (Comitê Gestor do IBS) e Comsefaz",
+  "fonteUrl": "https://www.gov.br/receitafederal/pt-br/acesso-a-informacao/acoes-e-programas/programas-e-atividades/reforma-tributaria-do-consumo/entenda",
+  "licenca": "Informação pública (gov.br)",
+  "atualizadoEm": "2026-10-07",
+  "resumo": "O IBS (Imposto sobre Bens e Serviços) tem alíquota ÚNICA nacional — não existe alíquota de IBS por estado. O que muda por UF é a transição ICMS→IBS e o reparto da arrecadação. Portanto não há 'alíquota de reforma por UF'; abaixo, a timeline legal que vale igualmente para as 27 UFs.",
+  "tributosSubstituidos": ["PIS/PASEP", "Cofins", "IPI", "ICMS", "ISSQN"],
+  "tributosCriados": ["CBS (federal)", "IBS (estadual/municipal, gestão pelo CGIBS)", "IS — Imposto Seletivo (federal)"],
+  "timeline": [
+    {
+      "ano": "2026",
+      "fase": "Ano-teste",
+      "detalhe": "CBS a 0,9% e IBS a 0,1%; o montante arrecadado é compensável com PIS/Cofins devido no período, sem recolhimento efetivo. Obrigações acessórias começam; taxa de prova isenta para quem cumpri-las."
+    },
+    {
+      "ano": "2027",
+      "fase": "CBS cheia; extinção de PIS/Cofins e do IPI",
+      "detalhe": "A CBS passa a ser cobrada na alíquota integral e PIS/Cofins são extintos. O Imposto Seletivo (IS) começa a incidir."
+    },
+    {
+      "ano": "2029",
+      "fase": "Início da transição ICMS/ISS → IBS",
+      "detalhe": "10% IBS / 90% ICMS e ISS."
+    },
+    {
+      "ano": "2030",
+      "fase": "Transição",
+      "detalhe": "20% IBS / 80% ICMS e ISS."
+    },
+    {
+      "ano": "2031",
+      "fase": "Transição",
+      "detalhe": "30% IBS / 70% ICMS e ISS."
+    },
+    {
+      "ano": "2032",
+      "fase": "Transição",
+      "detalhe": "40% IBS / 60% ICMS e ISS."
+    },
+    {
+      "ano": "2033",
+      "fase": "IBS pleno",
+      "detalhe": "ICMS e ISS extintos; IBS cobrado em alíquota plena, uniforme nacional, com rateio por destino. A alíquota de referência do IBS+CBS é definida pelo Senado/CGIBS (ainda sem valor fixado em lei — não exibimos estimativas)."
+    }
+  ],
+  "notasPorUf": "Para 'onde instalar data centers', a consequência prática por UF na janela 2026-2032 é a redução gradual da competência do ICMS (que hoje é o principal benefício/incentivo estadual) em favor do IBS uniforme — incentivos atrelados ao ICMS perdem eficácia ao longo da transição."
+}

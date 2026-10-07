@@ -48,13 +48,15 @@ O KV `CACHE` é resolvido em dev via `platformProxy` do `wrangler.jsonc`
 - `GET /graficos` — gráficos interativos com múltiplas curvas e filtro de período (Chart.js self-hosted)
 - `GET /paises` — comparação internacional: 11 países × 6 indicadores de mercado (World Bank)
 - `GET /estados` — ranking ordenável das 27 UFs (PIB, PIB per capita derivado, desocupação, informalidade, população)
-- `GET /estado/<sigla>` — drill-down por UF (PIB, participação, desocupação, informalidade)
+- `GET /estado/<sigla>` — drill-down por UF (PIB, participação, desocupação, informalidade + tarifa de energia ANEEL, ICMS CONFAZ, reforma IBS/CBS)
+- `GET /datacenters` — painel "onde instalar data centers": tarifa de energia por UF (ANEEL), ICMS arrecadado (CONFAZ/SIGDEF), timeline IBS/CBS (LC 214/2025); m² FipeZap indisponível (PDF sem API — nada inventado)
 - `GET /scorecards` — índices de investimento com definição/fonte e índice composto com fórmula visível
 - `GET /impostos` — tabelas de alíquotas básicas Brasil × EUA (IRPF, IRPJ/CSLL/PIS-Cofins, federal income tax, corporate tax) com fonte e vigência
 - `GET /empresas` — balanços de 15 listadas (DRE consolidada da CVM)
 - `GET /api/v1/indicadores` — API v1 (JSON, séries completas; `?formato=csv` exporta CSV) — docs em `docs/api.md`
 - `GET /api/v1/serie?id=...&inicio=&fim=` — série individual por indicador/localidade (World Bank, BCB, SIDRA, ONS, derivados) — docs em `docs/api.md`
 - `GET /api/v1/impostos.json` — dataset de impostos básicos (Brasil × EUA) — docs em `docs/api.md`
+- `GET /api/v1/datacenters.json` — pacote estático data centers (tarifa ANEEL por UF, ICMS CONFAZ por UF, timeline IBS/CBS) — docs em `docs/api.md`
 - `GET /api/indicadores.json` — endpoint legado do F1, servido pelo registro único (todos os indicadores nacionais)
 
 ## Roadmap
@@ -62,6 +64,8 @@ O KV `CACHE` é resolvido em dev via `platformProxy` do `wrangler.jsonc`
 - Cron de coleta (Workers Cron Triggers / GitHub Actions)
 - PIB municipal no drill-down (já coletado via SIDRA 5938 N6)
 - Emprego formal (CAGED/RAIS) e finanças públicas (Siconfi) — fontes pendentes, ver `docs/fontes.md`
+- Data centers: m² FipeZap (PDF sem API), temperatura média INMET por capital e backhaul Anatel — backlog documentado em `docs/fontes.md`
+- Novo boletim CONFAZ (dados.gov.br agora exige login gov.br) → rodar `scripts/generate_icms.py`; novas tarifas ANEEL → `scripts/generate-tarifas.ts`
 - Export Parquet/R2 de datasets completos
 
 ## Licença

@@ -1,0 +1,227 @@
+{
+  "fonte": "ANEEL — Tarifas de aplicação das distribuidoras de energia elétrica (tarifas homologadas)",
+  "fonteUrl": "https://dadosabertos.aneel.gov.br/dataset/tarifas-distribuidoras-energia-eletrica",
+  "licenca": "ODbL (Open Data Commons Open Database License)",
+  "unidade": "R$/kWh",
+  "metodologia": "Para cada distribuidora (CNPJ), o bloco de vigência mais recente com DscBaseTarifaria='Tarifa de Aplicação': B1 Residencial e B3 Comercial na modalidade Convencional (R$/kWh); A4 Industrial na modalidade Verde, posto Fora ponta — componente de energia apenas (MWh; a parcela de demanda é cobrada em R$/kW e não entra neste indicador). Tarifa = (VlrTE + VlrTUSD) ÷ 1000, em R$/kWh. Valor da UF = média simples entre as distribuidoras da UF. Mapeamento distribuidora→UF pelo CNPJ (recurso INDGER da ANEEL; CNPJs ausentes verificados na consulta pública do CNPJ).",
+  "geradoEm": "2026-10-07",
+  "geracaoConjunto": "2026-10-07",
+  "ufs": {
+    "RO": {
+      "sigla": "RO",
+      "residencial": 0.762,
+      "comercial": 0.762,
+      "industrial": 0.245,
+      "nDistribuidoras": 1,
+      "vigencia": "2026-08-26"
+    },
+    "AC": {
+      "sigla": "AC",
+      "residencial": 0.83,
+      "comercial": 0.83,
+      "industrial": 0.269,
+      "nDistribuidoras": 1,
+      "vigencia": "2026-08-26"
+    },
+    "AM": {
+      "sigla": "AM",
+      "residencial": 0.876,
+      "comercial": 0.876,
+      "industrial": 0.52,
+      "nDistribuidoras": 1,
+      "vigencia": "2026-05-26"
+    },
+    "RR": {
+      "sigla": "RR",
+      "residencial": 0.789,
+      "comercial": 0.789,
+      "industrial": 0.482,
+      "nDistribuidoras": 1,
+      "vigencia": "2026-01-25"
+    },
+    "PA": {
+      "sigla": "PA",
+      "residencial": 0.978,
+      "comercial": 0.978,
+      "industrial": 0.421,
+      "nDistribuidoras": 1,
+      "vigencia": "2026-01-01"
+    },
+    "AP": {
+      "sigla": "AP",
+      "residencial": 0.825,
+      "comercial": 0.825,
+      "industrial": 0.343,
+      "nDistribuidoras": 1,
+      "vigencia": "2026-04-13"
+    },
+    "TO": {
+      "sigla": "TO",
+      "residencial": 0.993,
+      "comercial": 0.993,
+      "industrial": 0.429,
+      "nDistribuidoras": 1,
+      "vigencia": "2026-08-26"
+    },
+    "MA": {
+      "sigla": "MA",
+      "residencial": 0.889,
+      "comercial": 0.889,
+      "industrial": 0.431,
+      "nDistribuidoras": 1,
+      "vigencia": "2026-08-28"
+    },
+    "PI": {
+      "sigla": "PI",
+      "residencial": 0.947,
+      "comercial": 0.947,
+      "industrial": 0.422,
+      "nDistribuidoras": 1,
+      "vigencia": "2026-01-01"
+    },
+    "CE": {
+      "sigla": "CE",
+      "residencial": 0.702,
+      "comercial": 0.702,
+      "industrial": 0.331,
+      "nDistribuidoras": 1,
+      "vigencia": "2026-08-26"
+    },
+    "RN": {
+      "sigla": "RN",
+      "residencial": 0.776,
+      "comercial": 0.776,
+      "industrial": 0.4,
+      "nDistribuidoras": 1,
+      "vigencia": "2026-04-22"
+    },
+    "PB": {
+      "sigla": "PB",
+      "residencial": 0.71,
+      "comercial": 0.71,
+      "industrial": 0.372,
+      "nDistribuidoras": 1,
+      "vigencia": "2026-08-28"
+    },
+    "PE": {
+      "sigla": "PE",
+      "residencial": 0.799,
+      "comercial": 0.799,
+      "industrial": 0.379,
+      "nDistribuidoras": 1,
+      "vigencia": "2026-04-29"
+    },
+    "AL": {
+      "sigla": "AL",
+      "residencial": 0.851,
+      "comercial": 0.851,
+      "industrial": 0.364,
+      "nDistribuidoras": 1,
+      "vigencia": "2026-05-03"
+    },
+    "SE": {
+      "sigla": "SE",
+      "residencial": 0.829,
+      "comercial": 0.829,
+      "industrial": 0.365,
+      "nDistribuidoras": 3,
+      "vigencia": "2026-08-26"
+    },
+    "BA": {
+      "sigla": "BA",
+      "residencial": 0.878,
+      "comercial": 0.878,
+      "industrial": 0.391,
+      "nDistribuidoras": 1,
+      "vigencia": "2026-04-22"
+    },
+    "MG": {
+      "sigla": "MG",
+      "residencial": 0.813,
+      "comercial": 0.813,
+      "industrial": 0.431,
+      "nDistribuidoras": 3,
+      "vigencia": "2026-06-22"
+    },
+    "ES": {
+      "sigla": "ES",
+      "residencial": 0.835,
+      "comercial": 0.835,
+      "industrial": 0.479,
+      "nDistribuidoras": 2,
+      "vigencia": "2026-09-22"
+    },
+    "RJ": {
+      "sigla": "RJ",
+      "residencial": 1.244,
+      "comercial": 1.244,
+      "industrial": 0.493,
+      "nDistribuidoras": 5,
+      "vigencia": "2026-04-29"
+    },
+    "SP": {
+      "sigla": "SP",
+      "residencial": 0.86,
+      "comercial": 0.86,
+      "industrial": 0.405,
+      "nDistribuidoras": 19,
+      "vigencia": "2026-09-30"
+    },
+    "PR": {
+      "sigla": "PR",
+      "residencial": 0.754,
+      "comercial": 0.754,
+      "industrial": 0.396,
+      "nDistribuidoras": 5,
+      "vigencia": "2026-07-30"
+    },
+    "SC": {
+      "sigla": "SC",
+      "residencial": 0.769,
+      "comercial": 0.769,
+      "industrial": 0.394,
+      "nDistribuidoras": 26,
+      "vigencia": "2026-09-30"
+    },
+    "RS": {
+      "sigla": "RS",
+      "residencial": 0.835,
+      "comercial": 0.835,
+      "industrial": 0.429,
+      "nDistribuidoras": 20,
+      "vigencia": "2026-07-30"
+    },
+    "MS": {
+      "sigla": "MS",
+      "residencial": 0.987,
+      "comercial": 0.987,
+      "industrial": 0.485,
+      "nDistribuidoras": 1,
+      "vigencia": "2026-04-22"
+    },
+    "MT": {
+      "sigla": "MT",
+      "residencial": 0.899,
+      "comercial": 0.899,
+      "industrial": 0.45,
+      "nDistribuidoras": 1,
+      "vigencia": "2026-04-08"
+    },
+    "GO": {
+      "sigla": "GO",
+      "residencial": 0.856,
+      "comercial": 0.856,
+      "industrial": 0.438,
+      "nDistribuidoras": 2,
+      "vigencia": "2026-01-01"
+    },
+    "DF": {
+      "sigla": "DF",
+      "residencial": 0.827,
+      "comercial": 0.827,
+      "industrial": 0.545,
+      "nDistribuidoras": 1,
+      "vigencia": "2026-01-01"
+    }
+  }
+}

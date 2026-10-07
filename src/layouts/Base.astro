@@ -6,7 +6,7 @@ import "../styles/global.css";
 type Props = {
   titulo: string;
   descricao?: string;
-  paginaAtiva?: "inicio" | "graficos" | "paises" | "estados" | "empresas" | "scorecards" | "impostos" | "api";
+  paginaAtiva?: "inicio" | "graficos" | "paises" | "estados" | "datacenters" | "empresas" | "scorecards" | "impostos" | "api";
 };
 
 const { titulo, descricao = "Painel público de estatísticas do Brasil — dados oficiais do IBGE, BCB, ONS, CVM e World Bank, sempre com fonte, período de referência e data de coleta.", paginaAtiva = "" } = Astro.props;
@@ -16,6 +16,7 @@ const LINKS = [
   ["graficos", "/graficos", "Gráficos"],
   ["paises", "/paises", "Países"],
   ["estados", "/estados", "Estados"],
+  ["datacenters", "/datacenters", "Data centers"],
   ["empresas", "/empresas", "Empresas"],
   ["scorecards", "/scorecards", "Scorecards"],
   ["impostos", "/impostos", "Impostos"],
